@@ -198,6 +198,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mic { width: 96px; height: 96px; border-radius: 50%; border: 0; background: var(--sky); font-size: 2.6em; color: #1f2925; }
 .mic.on { box-shadow: 0 0 0 0 var(--sky); animation: ring 1.4s infinite; }
 @keyframes ring { 0% { box-shadow: 0 0 0 0 var(--sky); } 100% { box-shadow: 0 0 0 22px transparent; } }
+.mic.small { width: 72px; height: 72px; font-size: 2em; }
+.read-word .lt { border-radius: 8px; transition: background .2s; }
+.read-word .sy { display: inline-block; white-space: nowrap; }
+.read-word .sy.on { background: var(--sun-soft); border-radius: 12px; }
+.read-word.on { background: var(--sun-soft); border-radius: 16px; }
+.read-word .lt.on { background: var(--sun); }
+.read-word .lt.blank { color: transparent; display: inline-block; min-width: .55em; border-bottom: 5px solid var(--line); margin: 0 .03em; }
+.read-word .lt.blank.on { border-bottom-color: var(--ink); }
+.read-word .lt.blank.hint { color: var(--muted); opacity: .4; }
+.talk { display: grid; gap: 10px; text-align: left; }
+.bub { margin: 0; padding: 12px 16px; border-radius: 18px; max-width: 85%; line-height: 1.45; }
+.bub.app { background: var(--lilac-soft); justify-self: start; border-bottom-left-radius: 6px; }
+.bub.kid { background: var(--sun-soft); justify-self: end; border-bottom-right-radius: 6px; font-weight: 700; }
 .heard { min-height: 1.5em; color: var(--muted); font-style: italic; }
 .story { font-size: 1.5em; line-height: 1.9; text-align: left; max-width: 34ch; }
 .story .w { border-radius: 8px; padding: 0 2px; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
@@ -400,6 +413,7 @@ body.night {
     { id: "leitura", tone: "t-sky", e: "📖", n: "Leitura em voz alta", d: "Eu leio e o app escuta", intro: "Vamos ler juntos!" },
     { id: "fala", tone: "t-sky", e: "🗣️", n: "Treino da fala", d: "Boca, sílabas e trava-línguas", intro: "Vamos treinar a fala, bem devagar." },
     { id: "cerebro", tone: "t-lilac", e: "🧩", n: "Desafios do pensar", d: "Memória, sequência e padrões", intro: "Vamos pensar juntos!" },
+    { id: "conversa", tone: "t-lilac", e: "💬", n: "Vamos conversar", d: "Eu pergunto e você responde falando", intro: "Vamos conversar!" },
     { id: "fora", tone: "t-sun", e: "🌳", n: "Missões fora da tela", d: "Brincar longe do celular", intro: "Hora de uma missão longe da tela!" },
     { id: "calma", tone: "t-clay", e: "🫧", n: "Cantinho da calma", d: "Respirar e se acalmar", intro: "Vamos respirar devagar juntos." },
     { id: "dormir", tone: "t-night", e: "🌙", n: "Hora de dormir", d: "Uma história em que você é a personagem", intro: "Hora de dormir." }
@@ -431,7 +445,7 @@ body.night {
       texts: ["A astronauta Clara olhou pela janela da nave. Lá embaixo, a Terra parecia uma bola azul. Ela anotou tudo no caderno para contar aos alunos da escola.", "Na biblioteca da escola, Davi encontrou um livro sobre dinossauros. Ele descobriu que alguns eram do tamanho de uma galinha."] }
   ];
   const LV = () => LEVELS[S.level || 2];
-  const TAB_NAMES = { numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra"], leitura: ["Ler palavras", "Ler um texto"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?"], fora: ["Missão"], calma: ["Respirar"] };
+  const TAB_NAMES = { numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra"], leitura: ["Ler palavras", "Ler um texto", "Soletrar"], conversa: ["Conversar"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?"], fora: ["Missão"], calma: ["Respirar"] };
   const today = () => new Date().toISOString().slice(0, 10);
   const planKey = (a, t) => a + ":" + t;
   const markPlan = (area, tab) => { if (S.plan.day !== today()) S.plan = { day: today(), done: [] }; const k = planKey(area, tab); if (!S.plan.done.includes(k)) S.plan.done.push(k); save(); };
@@ -528,6 +542,74 @@ body.night {
   }
   const noMicHtml = why => `<div class="nomic"><b>O app não consegue ouvir aqui.</b> ${why === "rede" ? "A escuta precisa de internet." : why === "bloqueado" ? "O microfone foi bloqueado neste navegador ou nesta página." : "Este navegador não tem escuta de voz (funciona no Chrome e no Safari)."} Sem problema: um adulto escuta a criança e toca no botão certo abaixo.</div>`;
 
+  // ---------- Conversa por voz: falar, esperar terminar, escutar ----------
+  // Depois que a criança usa o microfone uma vez, o app passa a escutar sozinho logo depois de perguntar.
+  let autoMic = false;
+  const sayThen = (text, cb, rate) => {
+    let done = false; const fin = () => { if (!done) { done = true; cb && cb(); } };
+    if (!("speechSynthesis" in window)) { setTimeout(fin, 300); return; }
+    try { speechSynthesis.cancel(); const u = speakWith(text, rate, ptVoice); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
+    setTimeout(fin, 1800 + text.length * 120);
+  };
+  const LETTER_NAME = { A: "á", B: "bê", C: "cê", D: "dê", E: "é", F: "éfe", G: "gê", H: "agá", I: "í", J: "jota", K: "cá", L: "éle", M: "ême", N: "êne", O: "ó", P: "pê", Q: "quê", R: "érre", S: "ésse", T: "tê", U: "ú", V: "vê", W: "dáblio", X: "xis", Y: "ípsilon", Z: "zê",
+    "Ç": "cê cedilha", "Ã": "á com til", "Õ": "ó com til", "Á": "á com acento", "É": "é com acento", "Í": "í com acento", "Ó": "ó com acento", "Ú": "ú com acento", "Â": "â com chapéu", "Ê": "ê com chapéu", "Ô": "ô com chapéu" };
+  const LETTER_ALT = { B: ["be"], C: ["ce", "se"], D: ["de"], E: ["e", "eh"], G: ["ge", "je"], H: ["aga"], J: ["jota"], K: ["ca", "ka"], L: ["ele", "le"], M: ["eme", "me"], N: ["ene"], P: ["pe"], Q: ["que", "ke"], R: ["erre", "ere"], S: ["esse", "ese"], T: ["te"], V: ["ve"], X: ["xis", "chis"], Z: ["ze"] };
+  const letterName = L => LETTER_NAME[L] || L.toLowerCase();
+  // A criança fala o nome da letra ("bê", "éle"...). Aceita a letra sozinha ou nomes parecidos.
+  const matchLetter = (L, alts) => {
+    const base = norm(L), names = [norm(letterName(L).split(" ")[0]), ...(LETTER_ALT[base.toUpperCase()] || [])];
+    return alts.some(t => norm(t).split(" ").some(x => x === base || names.some(n => x === n || (n.length > 2 && sim(x, n) >= 0.75))));
+  };
+  const UNITS = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+  const TENS = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+  const numWord = n => n < 20 ? UNITS[n] : n === 100 ? "cem" : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? " e " + UNITS[n % 10] : "") : String(n);
+  // Nota de 0 a 1 para o que foi ouvido contra uma resposta (palavra ou número).
+  const scoreSaid = (alts, cands) => {
+    let best = 0;
+    alts.forEach(t => {
+      const toks = norm(t).split(" ").filter(Boolean);
+      cands.forEach(c => {
+        const cn = norm(c), size = cn.split(" ").length;
+        if (/^\d+$/.test(cn) && toks.includes(cn)) best = 1;
+        best = Math.max(best, sim(t, c));
+        for (let i = 0; i + size <= toks.length; i++) best = Math.max(best, sim(toks.slice(i, i + size).join(" "), cn));
+      });
+    });
+    return best;
+  };
+  // Microfone que liga sozinho depois da pergunta (quando já foi usado) e devolve o que a criança falou.
+  function micButton(host, { onDone, onFail, small }) {
+    if (!SR || micBlocked) return null;
+    const wrap = h(`<div class="answer"><button class="mic${small ? " small" : ""}" aria-label="Responder falando">🎤</button><div class="heard">${small ? "Pode tocar ou responder falando" : ""}</div></div>`);
+    host.appendChild(wrap);
+    const mic = wrap.querySelector(".mic"), heard = wrap.querySelector(".heard");
+    let stop = null;
+    const start = () => {
+      if (!wrap.isConnected || mic.classList.contains("on")) return;
+      mic.classList.add("on"); heard.textContent = "Estou ouvindo…";
+      stop = listen({ continuous: false,
+        onText: t => { if (wrap.isConnected) heard.textContent = t || "Estou ouvindo…"; },
+        onFail: why => { mic.classList.remove("on"); if (why === "bloqueado" || why === "indisponivel" && !autoMic) { wrap.remove(); onFail && onFail(why); } else heard.textContent = why === "rede" ? "A escuta precisa de internet. Pode tocar na resposta." : ""; },
+        onDone: (t, alts) => { mic.classList.remove("on"); if (!wrap.isConnected) return; if (!t) { heard.textContent = "Não ouvi. Toque no microfone e fale de novo."; return; } autoMic = true; heard.textContent = `Ouvi: “${t}”`; onDone(t, alts); } });
+    };
+    mic.onclick = () => { if (mic.classList.contains("on")) { stop && stop(); return; } start(); };
+    const prev = cleanup; cleanup = () => { stop && stop(); prev && prev(); };
+    return { start, auto: () => { if (autoMic) start(); }, say: txt => { heard.textContent = txt; } };
+  }
+  // Nas atividades de escolher: a criança pode tocar na resposta ou falar.
+  function voiceAnswer(p) {
+    const box = p.querySelector(".choices"); if (!box) return;
+    const host = document.createElement("div"); box.after(host);
+    const m = micButton(host, { small: true, onDone: (t, alts) => {
+      const opts = [...box.querySelectorAll("button:not([disabled])")].map(b => {
+        const v = b.dataset.o || b.dataset.w || b.getAttribute("aria-label") || b.textContent;
+        return { b, s: scoreSaid(alts, /^\d+$/.test(v) ? [v, numWord(+v), ...(+v === 14 ? ["catorze"] : [])] : [v]) };
+      }).sort((a, z) => z.s - a.s);
+      if (opts[0] && opts[0].s >= 0.75 && (!opts[1] || opts[1].s < opts[0].s)) opts[0].b.click();
+      else { m.say(`Ouvi “${t}”. Não achei essa resposta aqui. Pode falar de novo ou tocar.`); say("Não entendi. Pode falar de novo ou tocar na resposta."); }
+    } });
+  }
+
   // ---------- Navegação ----------
   const app = document.getElementById("app");
   let current = "home";
@@ -551,7 +633,7 @@ body.night {
     if ("speechSynthesis" in window) try { speechSynthesis.cancel(); } catch (e) {}
     current = id;
     app.innerHTML = "";
-    ({ splash, fim, home, numeros, letras, leitura, fala, cerebro, fora, calma, dormir, pais, avaliar, relatorio })[id]();
+    ({ splash, fim, home, numeros, letras, leitura, fala, cerebro, conversa, fora, calma, dormir, pais, avaliar, relatorio })[id]();
     window.scrollTo(0, 0);
     try { history.replaceState(null, "", id === "home" ? location.pathname : "#" + id); } catch (e) {}
   }
@@ -564,7 +646,7 @@ body.night {
   const NO_READ = "#hear, .mic, #mic, .key, .pad, .mcard, .cnt, .dot, .syl, #slow, #fast, #all, #listenFirst, #vtest, [data-noread]";
   let armed = null, armedAt = 0;
   const disarm = () => { if (armed) armed.classList.remove("armed"); armed = null; };
-  const labelOf = b => ((b.innerText || "").toLocaleLowerCase("pt-BR").replace(/\s*\n+\s*/g, ". ") + " ").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D←→⌫▶🔒]/gu, " ").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "") || (b.getAttribute("aria-label") || "").trim();
+  const labelOf = b => b.dataset.say || ((b.innerText || "").toLocaleLowerCase("pt-BR").replace(/\s*\n+\s*/g, ". ") + " ").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D←→⌫▶🔒]/gu, " ").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "") || (b.getAttribute("aria-label") || "").trim();
   document.addEventListener("click", e => {
     if (!S.tap2 || !e.isTrusted) return;
     const b = e.target.closest("button, [role=button]");
@@ -985,6 +1067,7 @@ body.night {
       }
     });
     p.querySelector("#next").onclick = () => { p.innerHTML = ""; letraInicial(p, setSpeak); };
+    voiceAnswer(p);
   }
   function montar(p, setSpeak) {
     const target = rand(WORDS.filter(w => w.s && w.s.length <= LVs("letras").maxSyl));
@@ -1015,7 +1098,7 @@ body.night {
 
   // ---------- Leitura em voz alta ----------
   function leitura() {
-    shell("leitura", TAB_NAMES.leitura, (tab, p, setSpeak) => tab === 0 ? lerPalavras(p, setSpeak) : lerTexto(p, setSpeak));
+    shell("leitura", TAB_NAMES.leitura, (tab, p, setSpeak) => tab === 0 ? lerPalavras(p, setSpeak) : tab === 1 ? lerTexto(p, setSpeak) : soletrar(p, setSpeak));
   }
   const noteWord = (w, ok) => { const k = w.replace(/-/g, ""); const r = S.words[k] || { ok: 0, miss: 0 }; ok ? r.ok++ : r.miss++; S.words[k] = r; save(); };
   let lastWord = "";
@@ -1024,11 +1107,11 @@ body.night {
     const syl = pick.split("-"), word = syl.join("");
     let tries = 0, stop = null;
     p.innerHTML = `<p class="hint">Leia a palavra em voz alta. Toque no microfone e fale.</p>
-      <div class="read-word" id="rw">${syl.map(x => `<span class="sy">${x}</span>`).join("")}</div>
+      <div class="read-word" id="rw">${spellHtml(syl)}</div>
       <div id="act" class="row"></div>
       <div class="heard" id="heard"></div>
       <div class="feedback" id="fb"></div>
-      <div class="row"><button class="btn soft" id="help">🔊 Preciso de ajuda</button><button class="btn soft" id="next">Outra palavra</button></div>`;
+      <div class="row"><button class="btn soft" id="help">🔊 Preciso de ajuda</button><button class="btn soft" id="spell">🔤 Soletrar</button><button class="btn soft" id="next">Outra palavra</button></div>`;
     const act = p.querySelector("#act"), fb = p.querySelector("#fb"), heardEl = p.querySelector("#heard"), rw = p.querySelector("#rw");
     cleanup = () => stop && stop();
     const helpSyl = () => { rw.classList.add("split"); say(syl.join("... ") + "... " + word, 0.6); };
@@ -1062,6 +1145,7 @@ body.night {
     };
     (SR && !micBlocked) ? micUi() : manual("indisponivel");
     p.querySelector("#help").onclick = helpSyl;
+    p.querySelector("#spell").onclick = () => { stop && stop(); spellAnim(rw, syl, word); };
     p.querySelector("#next").onclick = () => { stop && stop(); p.innerHTML = ""; lerPalavras(p, setSpeak); };
     setSpeak(() => say("Leia a palavra em voz alta. Toque no microfone e fale."));
     say("Leia a palavra em voz alta.");
@@ -1121,6 +1205,150 @@ body.night {
     (SR && !micBlocked) ? micUi() : manual("indisponivel");
     p.querySelector("#next").onclick = () => { stop && stop(); if ("speechSynthesis" in window) speechSynthesis.cancel(); p.innerHTML = ""; lerTexto(p, setSpeak); };
     setSpeak(() => say("Primeiro escute. Depois é a sua vez de ler."));
+  }
+
+  // ---------- Soletrar ----------
+  const ABC = "ABCDEFGHIJLMNOPRSTUVXZ".split("");
+  const spellHtml = syl => syl.map(s => `<span class="sy">${[...s].map(c => `<span class="lt">${c}</span>`).join("")}</span>`).join("");
+  // Soletra devagar: letra por letra, depois a sílaba, depois a palavra inteira, acendendo cada parte.
+  function spellAnim(el, syl, word, done) {
+    const steps = [];
+    el.querySelectorAll(".sy").forEach((sy, i) => {
+      sy.querySelectorAll(".lt").forEach(lt => steps.push({ on: lt, t: letterName(lt.textContent.toUpperCase()) }));
+      steps.push({ on: sy, t: syl[i].toLowerCase() });
+    });
+    if (syl.length > 1) steps.push({ on: el, t: word.toLowerCase() });
+    let i = 0;
+    const run = () => {
+      el.querySelectorAll(".on").forEach(x => x.classList.remove("on")); el.classList.remove("on");
+      if (!el.isConnected) return;
+      if (i >= steps.length) return done && done();
+      const s = steps[i++]; s.on.classList.add("on");
+      sayThen(s.t, () => setTimeout(run, 250), 0.8);
+    };
+    run();
+  }
+  function soletrar(p, setSpeak) {
+    const pick = rand(LVs("leitura").words.filter(w => w !== lastWord)); lastWord = pick;
+    const syl = pick.split("-"), word = syl.join(""), letters = [...word.toUpperCase()];
+    p.innerHTML = `<p class="hint" id="sh">Escute: eu vou soletrar esta palavra, letra por letra.</p>
+      <div class="read-word" id="sw">${spellHtml(syl)}</div>
+      <div id="sa" class="answer"></div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="again">🔁 Soletrar de novo</button><button class="btn soft" id="next">Outra palavra</button></div>`;
+    const sw = p.querySelector("#sw"), sa = p.querySelector("#sa"), fb = p.querySelector("#fb"), sh = p.querySelector("#sh");
+    const lts = [...sw.querySelectorAll(".lt")];
+    let k = 0, misses = 0, errs = 0, busy = false, mic = null, mine = false;
+    const showMine = () => {
+      if (!sw.isConnected) return;
+      sa.innerHTML = `<button class="btn" id="mine">Agora eu soletro</button>`;
+      sa.querySelector("#mine").onclick = yourTurn;
+      say("Agora é a sua vez de soletrar!");
+    };
+    const demo = () => { sa.innerHTML = ""; spellAnim(sw, syl, word, mine ? () => ask() : showMine); };
+    const yourTurn = () => { mine = true; k = 0; errs = 0; lts.forEach(l => { l.classList.add("blank"); l.classList.remove("hint"); }); sh.textContent = "Fale o nome de cada letra ou toque nela."; ask(); };
+    const ask = () => {
+      if (!sw.isConnected) return;
+      lts.forEach(l => l.classList.remove("on")); busy = false; misses = 0; fb.textContent = "";
+      if (k >= lts.length) return finish();
+      const L = letters[k], base = norm(L).toUpperCase(); lts[k].classList.add("on");
+      const opts = shuffle([L, ...shuffle(ABC.filter(x => x !== base)).slice(0, LVs("letras").opts > 3 ? 3 : 2)]);
+      sa.innerHTML = `<div class="choices">${opts.map(o => `<button class="choice" data-l="${o}" data-say="${letterName(o)}">${o}</button>`).join("")}</div>`;
+      sa.querySelectorAll("[data-l]").forEach(b => b.onclick = () => answer(b.dataset.l === L, b.dataset.l));
+      mic = micButton(sa, { small: true, onDone: (t, alts) => answer(matchLetter(L, alts), null) });
+      const q = k === 0 ? `Qual é a primeira letra de ${word.toLowerCase()}?` : "E a próxima letra?";
+      setSpeak(() => say(q)); sayThen(q, () => mic && mic.auto());
+    };
+    const answer = (ok, tapped) => {
+      if (busy || !sw.isConnected || k >= lts.length) return;
+      const L = letters[k], lt = lts[k];
+      if (ok || misses >= 1) {
+        busy = true; if (!ok) errs++;
+        lt.classList.remove("blank", "hint"); k++;
+        const sy = lt.parentElement, endSy = sy.lastElementChild === lt && syl.length > 1;
+        const msg = (ok ? rand(["Isso!", "Muito bem!", "Certinho!"]) + ` ${letterName(L)}.` : `Essa é a letra ${letterName(L)}. Vamos continuar.`) + (endSy ? ` ${sy.textContent.toLowerCase()}.` : "");
+        fb.textContent = ""; sayThen(msg, ask, 0.85);
+      } else {
+        misses++; lt.classList.add("hint"); fb.textContent = "Quase! Olhe a dica e tente de novo.";
+        sayThen((tapped ? `Essa é a letra ${letterName(tapped)}. ` : "Quase! ") + `Escute de novo: ${word.toLowerCase()}. Tente outra vez.`, () => mic && mic.auto(), 0.85);
+      }
+    };
+    const finish = () => {
+      sa.innerHTML = ""; sh.textContent = "Você soletrou a palavra inteira!";
+      const m = rand(praise); fb.textContent = `${m} ${word}`;
+      star("leitura"); track(errs === 0, p, "letras");
+      say(`${m} ${letters.map(letterName).join(", ")}. ${word.toLowerCase()}!`, 0.85);
+    };
+    p.querySelector("#again").onclick = () => { if (mine) { lts.forEach((l, i) => l.classList.toggle("blank", i >= k)); } demo(); };
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; soletrar(p, setSpeak); };
+    setSpeak(() => demo());
+    demo();
+  }
+
+  // ---------- Vamos conversar ----------
+  const cleanSaid = v => String(v || "").trim()
+    .replace(/^(eu\s+)?(acho\s+que\s+)?(gosto\s+mais\s+|gosto\s+|adoro\s+|amo\s+|prefiro\s+|quero\s+|iria\s+(pra|para)\s+|vou\s+(pra|para)\s+)(de\s+|do\s+|da\s+|dos\s+|das\s+|brincar\s+de\s+)?/i, "")
+    .replace(/^(a\s+minha|o\s+meu|minha|meu)(\s+\S+)?(\s+(favorit[ao]|preferid[ao]))?\s+(e|é)\s+/i, "")
+    .replace(/^(e|é)\s+(o|a)\s+/i, "").replace(/^(o|a)\s+nome\s+(e|é)\s+/i, "").replace(/[.!?]+$/, "").slice(0, 30).trim();
+  const capFirst = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+  const TALK = [
+    { k: "cor", q: "Qual é a sua cor favorita?", chips: ["Azul", "Rosa", "Verde", "Amarelo", "Roxo"], r: v => `${v}! Que cor bonita. O que tem da cor ${v.toLowerCase()} perto de você agora?`, r2: () => "Que legal! Você é muito observadora." },
+    { k: "animal", q: "Qual é o bicho que você mais gosta?", chips: ["Cachorro", "Gato", "Coelho", "Cavalo"], r: v => `${v}! Que legal. Você consegue imitar o som que ele faz?`, r2: () => "Hahaha, que divertido!" },
+    { k: "comida", q: "Qual é a sua comida preferida?", chips: ["Macarrão", "Pizza", "Arroz e feijão", "Fruta"], r: v => `Hum, ${v.toLowerCase()}! Que delícia. Você come isso no almoço ou no jantar?`, r2: () => "Que gostoso! Fiquei com fome." },
+    { k: "brincadeira", q: "Do que você mais gosta de brincar?", chips: ["Boneca", "Bola", "Desenhar", "Pega-pega"], r: v => `${v}! Que brincadeira boa. Com quem você gosta de brincar disso?`, r2: () => "Brincar junto é muito bom!" },
+    { k: "amigo", q: "Qual é o nome de alguém de quem você gosta muito?", chips: ["Mamãe", "Papai", "Vovó", "Meu irmão"], r: v => `${v}! Que bom ter alguém especial. O que vocês gostam de fazer juntos?`, r2: () => "Que lindo! Isso é muito especial." },
+    { k: "escola", q: "Qual é o nome da sua escola?", chips: [], r: v => `${v}! Vou guardar esse nome. O que você mais gosta de fazer na escola?`, r2: () => "Que legal! Obrigado por me contar." },
+    { k: "lugar", q: "Se você pudesse ir a qualquer lugar, aonde você iria?", chips: ["Praia", "Parque", "Lua", "Casa da vovó"], r: v => `${v}! Que passeio bom. O que você levaria nessa viagem?`, r2: () => "Boa ideia! Vai ser uma aventura." },
+    { q: "Como foi o seu dia hoje?", chips: ["Bom", "Mais ou menos", "Difícil"], r: v => /dif|ruim|trist|chat|mal/i.test(v) ? "Que bom que você me contou. Dias difíceis passam. Quer me contar o que aconteceu?" : /bom|boa|legal|feliz|otim|lind|divert/i.test(v) ? "Que bom! Fico feliz. O que foi a melhor parte?" : "Entendi. O que você fez de legal hoje?", r2: () => "Obrigado por conversar comigo sobre isso." },
+    { q: "Como você está se sentindo agora?", chips: ["Feliz", "Calma", "Cansada", "Brava", "Triste"], r: v => /trist|chor/i.test(v) ? "Tudo bem ficar triste. Quer respirar devagar comigo? Puxa o ar... e solta." : /brav|raiva/i.test(v) ? "Tudo bem sentir raiva às vezes. Vamos respirar devagar juntos? Puxa o ar... e solta." : /cans|sono/i.test(v) ? "Seu corpo está pedindo descanso. Daqui a pouco pode ser hora de uma história." : "Que bom! Gosto de saber como você está.", r2: null },
+    { q: "Me conta uma coisa que você sabe fazer muito bem.", chips: ["Desenhar", "Correr", "Pular", "Cantar"], r: v => `${v}! Que incrível. Você pode me mostrar depois?`, r2: () => "Você tem muitos talentos!" }
+  ];
+  let talkOrder = [];
+  function conversa() {
+    shell("conversa", TAB_NAMES.conversa, (tab, p, setSpeak) => conversar(p, setSpeak));
+  }
+  function conversar(p, setSpeak) {
+    if (talkOrder.length < 3) talkOrder = shuffle(TALK);
+    const round = talkOrder.splice(0, 3);
+    let n = 0;
+    p.innerHTML = `<div class="talk" id="talk"></div><div id="ta" class="answer"></div>`;
+    const talk = p.querySelector("#talk"), ta = p.querySelector("#ta");
+    const bubble = (who, text) => { const b = document.createElement("p"); b.className = "bub " + who; b.textContent = text; talk.appendChild(b); b.scrollIntoView({ block: "nearest", behavior: "smooth" }); return b; };
+    const askIt = (q, chips, onAnswer) => {
+      if (!talk.isConnected) return;
+      bubble("app", q);
+      ta.innerHTML = `${chips.length ? `<div class="row">${chips.map(c => `<button class="chip">${c}</button>`).join("")}</div>` : ""}
+        <div class="form-row"><input id="typed" placeholder="Ou escreva aqui" maxlength="40" aria-label="Resposta"><button class="btn soft" id="send">OK</button></div>`;
+      let done = false;
+      const fin = v => { v = cleanSaid(v); if (!v || done) return; done = true; ta.innerHTML = ""; bubble("kid", capFirst(v)); onAnswer(capFirst(v)); };
+      ta.querySelectorAll(".chip").forEach(b => b.onclick = () => fin(b.textContent));
+      ta.querySelector("#send").onclick = () => fin(ta.querySelector("#typed").value);
+      ta.querySelector("#typed").onkeydown = e => { if (e.key === "Enter") fin(e.target.value); };
+      const holder = document.createElement("div"); ta.prepend(holder);
+      const mic = micButton(holder, { onDone: t => fin(t) });
+      setSpeak(() => say(q)); sayThen(q, () => mic && mic.auto(), 0.9);
+    };
+    const next = () => {
+      if (!talk.isConnected) return;
+      if (n >= round.length) {
+        star("conversa");
+        const end = `Adorei conversar com você${S.name ? ", " + S.name : ""}! Você ganhou uma estrela.`;
+        bubble("app", end); say(end);
+        ta.innerHTML = `<div class="row"><button class="btn" id="more">Conversar mais</button><button class="btn soft" data-go="home">Voltar ao início</button></div>`;
+        ta.querySelector("#more").onclick = () => { p.innerHTML = ""; conversar(p, setSpeak); };
+        return;
+      }
+      const t = round[n++];
+      askIt(t.q, t.chips, v => {
+        if (t.k && !/^(nao sei|nenhum|nenhuma|ninguem)$/.test(norm(v))) { S.bed.facts[t.k] = v; save(); }
+        const r = t.r(v);
+        if (t.r2 && /\?$/.test(r)) askIt(r, [], () => { const r2 = t.r2(); bubble("app", r2); sayThen(r2, () => setTimeout(next, 500), 0.9); });
+        else { bubble("app", r); sayThen(r, () => setTimeout(next, 800), 0.9); }
+      });
+    };
+    const hi = `Oi${S.name ? ", " + S.name : ""}! Vamos conversar um pouquinho? Eu pergunto e você responde. Pode falar no microfone, tocar ou escrever.`;
+    bubble("app", hi); setSpeak(() => say(hi));
+    sayThen(hi, () => setTimeout(next, 300), 0.9);
   }
 
   // ---------- Hora de dormir ----------
@@ -1691,6 +1919,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       else { b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); track(false, p, "matematica"); p.querySelector("#fb").textContent = "Vamos contar juntos, tocando em cada um."; say("Vamos contar juntos. Toque em cada um."); }
     });
     p.querySelector("#next").onclick = () => { p.innerHTML = ""; contar(p, setSpeak); };
+    voiceAnswer(p);
     setSpeak(() => say("Quantos tem? Conte com o dedinho.")); say("Quantos tem? Conte com o dedinho.");
   }
   function comparar(p, setSpeak) {
@@ -1733,6 +1962,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       p.querySelector("#help").disabled = true;
     };
     p.querySelector("#next").onclick = () => { p.innerHTML = ""; continhas(p, setSpeak); };
+    voiceAnswer(p);
     setSpeak(() => say(`Quanto é ${c.say}?`)); say(`Quanto é ${c.say}?`);
   }
 
@@ -1991,7 +2221,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
   S.voice = true; if (S.tap2 === undefined) S.tap2 = true;
   applyPrefs();
   const start = (location.hash || "").slice(1);
-  go(["numeros", "letras", "leitura", "fala", "cerebro", "fora", "calma", "dormir", "pais", "avaliar", "relatorio"].includes(start) ? start : "splash");
+  go(["numeros", "letras", "leitura", "fala", "cerebro", "conversa", "fora", "calma", "dormir", "pais", "avaliar", "relatorio"].includes(start) ? start : "splash");
 })();
 </script>
 
