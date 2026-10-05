@@ -1416,7 +1416,7 @@ body.night {
   // Biblioteca de histórias (funciona sem internet). Formato: [id, emoji, título, resumo, linhas].
   // Linha de texto: "..." · linha só para 7 anos ou mais: "+ ..." · pergunta: ["?", chave, pergunta, [opções]].
   // Chaves de nome próprio mantêm a maiúscula; as outras entram em minúscula e sem artigo no começo.
-  const PROPER = ["amigo", "pessoa", "nomeBicho", "musica", "escola", "nomeCastelo", "torcida", "ajuda", "ideia", "pergunta", "nomeCompanheiro", "nomeCoruja", "nomeMenina"], STRIP = ["animal", "brincadeira", "vagao"];
+  const PROPER = ["amigo", "pessoa", "nomeBicho", "musica", "escola", "nomeCastelo", "torcida", "ajuda", "ideia", "pergunta", "nomeCompanheiro", "nomeCoruja", "nomeMenina", "nomeOvelha", "nomeBurrinho", "nomePerdida"], STRIP = ["animal", "brincadeira", "vagao"];
   const LIB = [
     ["dino", "🦕", "O dinossauro com medo do escuro", "Ajude um dinossauro a dormir", [
       "{nome} estava no quintal quando ouviu um barulhinho atrás da árvore.",
@@ -1888,6 +1888,227 @@ body.night {
       "E foi dormir sabendo que é uma criança corajosa, gentil e muito, muito especial.",
       "Fim da grande viagem de {nome}. Quando quiser, a aventura pode começar de novo." ]]
   ];
+  // Histórias da Bíblia, recontadas com calma para crianças. A criança acompanha e responde perguntas; o texto segue o relato bíblico.
+  const BIBLE_LINES = [
+    ["b-criacao", "🌍", "Deus criou o mundo", "Gênesis 1 e 2", [
+      "{nome}, hoje a gente vai ouvir uma história da Bíblia. Ela está bem no comecinho do livro, em Gênesis.",
+      "No começo de tudo, não tinha nada. Nem céu, nem terra, nem bichos, nem gente. Era tudo escuro e silencioso.",
+      "Então Deus falou: — Haja luz! E a luz apareceu, clarinha e bonita. Deus viu que a luz era boa.",
+      "Deus separou a luz do escuro. Chamou a luz de dia e chamou o escuro de noite. Esse foi o primeiro dia.",
+      "Depois, Deus fez o céu, lá em cima, bem azul.",
+      "Deus juntou as águas e apareceu a terra seca. E na terra Deus fez nascer plantas, flores e árvores cheias de frutas.",
+      ["?", "fruta", "Qual fruta você acha que tinha nas árvores que Deus criou?", ["Maçã", "Banana", "Morango", "Uva"]],
+      "Hum, {fruta}! Deus fez frutas gostosas e coloridas, de todos os tipos.",
+      "Depois, Deus colocou no céu o sol, para brilhar de dia, e a lua e as estrelas, para brilhar de noite.",
+      "+ É por isso que, quando você olha pela janela à noite, pode ver a lua e as estrelas que Deus criou.",
+      "Então Deus encheu o mar de peixes e o céu de passarinhos. Os peixes nadavam e os passarinhos cantavam.",
+      "Depois, Deus fez os bichos da terra: cachorros, gatos, cavalos, coelhos, elefantes, girafas...",
+      ["?", "bichoCriado", "Qual bicho que Deus criou você mais gosta?", ["Cachorro", "Gato", "Elefante", "Girafa"]],
+      "{bichoCriado}! Deus caprichou nesse bicho.",
+      "Por último, Deus fez as pessoas: Adão e Eva. Deus fez as pessoas com muito amor, parecidas com Ele, para cuidarem de toda a criação.",
+      "Deus olhou para tudo o que tinha feito e viu que era muito bom.",
+      "No sétimo dia, Deus descansou. E ensinou que descansar também é bom.",
+      "+ Deus fez cada pessoa diferente e especial. E isso inclui você, {nome}.",
+      "Agora é a nossa hora de descansar também. Vamos agradecer: obrigado, Deus, pelo dia, pela noite, pelos bichos e pela minha família. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-noe", "🌈", "A arca de Noé", "Gênesis 6 a 9", [
+      "Hoje a história é sobre um homem chamado Noé. Ela está na Bíblia, no livro de Gênesis.",
+      "Noé era um homem bom, que amava a Deus e obedecia a Ele.",
+      "Um dia, Deus falou com Noé: — Construa um barco bem grande, uma arca. Vai chover muito, e você vai cuidar da sua família e dos animais.",
+      "Noé obedeceu. Ele e os filhos cortaram madeira e trabalharam muito tempo. Toc, toc, toc, faziam os martelos.",
+      "A arca ficou enorme, com três andares, uma porta grande e uma janela lá no alto.",
+      "Então os animais começaram a chegar, de dois em dois: um macho e uma fêmea de cada tipo.",
+      ["?", "bichoArca", "Que bicho você viu entrando na arca?", ["Os leões", "As girafas", "Os elefantes", "Os coelhos"]],
+      "Olha só: {bichoArca} entrando na arca, bem comportados! E atrás vinham as zebras, os passarinhos, as tartarugas, até as formiguinhas.",
+      "Quando todos entraram, Deus fechou a porta. E começou a chover.",
+      "Choveu quarenta dias e quarenta noites. Plic, plic, plic... A água subiu, subiu, e a arca começou a flutuar.",
+      "+ Dentro da arca, Noé e a família davam comida aos bichos e cuidavam de todos. Deus estava cuidando deles também.",
+      ["?", "somArca", "Dentro da arca tinha muito barulho de bicho. Que som você acha que tinha lá dentro?", ["Muuu", "Au au", "Miau", "Piu piu"]],
+      "{somArca}! A arca era cheia de sons, mas todo mundo estava seguro e protegido.",
+      "Um dia, a chuva parou. A água começou a baixar devagar, e a arca parou em cima de uma montanha.",
+      "Noé soltou uma pomba pela janela. Ela voltou trazendo no bico uma folhinha verde de oliveira. Era sinal de que a terra estava secando!",
+      "Quando a terra secou, Deus disse: — Podem sair! Noé abriu a porta, e os bichos saíram correndo, pulando e voando.",
+      "Noé agradeceu a Deus. E Deus colocou no céu um arco-íris, como uma promessa de cuidado.",
+      ["?", "corArco", "Qual é a cor do arco-íris que você mais gosta?", ["Vermelho", "Amarelo", "Azul", "Roxo"]],
+      "O {corArco} é lindo! Toda vez que você vir um arco-íris, pode lembrar que Deus cuida de nós.",
+      "Vamos agradecer: obrigado, Deus, porque o Senhor cuida de mim todos os dias e todas as noites. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-moises", "🧺", "O bebê Moisés no cestinho", "Êxodo 2", [
+      "Hoje a história da Bíblia é sobre um bebê muito especial, chamado Moisés. Ela está no livro de Êxodo.",
+      "Há muito tempo, o povo de Deus vivia no Egito, e o rei de lá, o faraó, não era bondoso com eles.",
+      "Uma mamãe teve um bebê lindo. Ela amava muito o filhinho e queria protegê-lo.",
+      "Então ela fez um cestinho de junco, passou piche para a água não entrar e colocou o bebê dentro, bem enroladinho.",
+      "Com cuidado, ela colocou o cestinho no meio das plantas, na beira do rio Nilo.",
+      "A irmã do bebê, Miriã, ficou escondida ali perto, olhando para ver o que ia acontecer.",
+      ["?", "somRio", "O cestinho balançava na água. Que barulho você acha que o rio fazia?", ["Shhh", "Plic, plic", "Glub, glub", "Bem quietinho"]],
+      "{somRio}... O cestinho balançava devagar, como um berço, e o bebê dormia.",
+      "Então a filha do faraó, a princesa, foi tomar banho no rio e viu o cestinho.",
+      "Ela abriu o cestinho e lá estava o bebê, chorando baixinho. A princesa sentiu muito carinho por ele.",
+      "Miriã, a irmã, saiu do esconderijo e perguntou: — Quer que eu chame uma moça para cuidar do bebê?",
+      "A princesa disse que sim. E Miriã foi chamar... a própria mamãe do bebê!",
+      "+ Assim, a mamãe pôde cuidar do filhinho mais um tempo, com amor, e ninguém fez mal a ele.",
+      "A princesa deu ao bebê o nome de Moisés, que quer dizer tirado das águas.",
+      ["?", "cuidar", "Miriã cuidou do irmãozinho. Quem cuida de você?", ["A mamãe", "O papai", "A vovó", "O vovô"]],
+      "Que bom! {cuidar} cuida de você, e Deus também cuida de você o tempo todo.",
+      "Moisés cresceu e, quando ficou grande, Deus usou Moisés para guiar o seu povo para um lugar de liberdade.",
+      "Vamos agradecer: obrigado, Deus, pelas pessoas que cuidam de mim. Proteja a minha família. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-davi", "🪨", "Davi, o pastorzinho corajoso", "1 Samuel 17", [
+      "Hoje a história é sobre um menino chamado Davi. Ela está na Bíblia, no primeiro livro de Samuel.",
+      "Davi era o filho mais novo da família e cuidava das ovelhas do pai, no campo.",
+      "Ele tocava harpa e cantava músicas para Deus enquanto as ovelhas comiam a grama.",
+      ["?", "nomeOvelha", "Se você tivesse uma ovelhinha, que nome daria para ela?", ["Algodão", "Fofinha", "Branquinha", "Nuvem"]],
+      "{nomeOvelha}! Davi conhecia cada ovelha e cuidava de todas com carinho.",
+      "Um dia, o pai mandou Davi levar comida para os irmãos, que estavam no exército do rei Saul.",
+      "Lá, Davi viu um soldado enorme, chamado Golias. Ele era um gigante, e todo mundo tinha medo dele.",
+      "Golias gritava: — Quem tem coragem de lutar comigo? E ninguém respondia.",
+      "Mas Davi disse: — Eu vou. Deus me ajudou a proteger as minhas ovelhas e vai me ajudar agora.",
+      "O rei Saul quis dar a armadura dele para Davi, mas era grande e pesada demais. Davi preferiu ir do jeito dele.",
+      "Davi pegou o cajado, a funda e foi até o riacho escolher cinco pedrinhas bem lisinhas.",
+      ["?", "contarPedras", "Vamos contar as pedrinhas de Davi? Conte comigo até cinco!", ["Um, dois, três, quatro, cinco!"]],
+      "Muito bem! Cinco pedrinhas lisinhas na bolsa de Davi.",
+      "Davi não estava sozinho. Ele confiava em Deus.",
+      "Ele girou a funda, lançou uma pedrinha, e a pedra acertou bem na testa do gigante. Golias caiu no chão, e a luta acabou.",
+      "Todo mundo comemorou! O pequeno Davi venceu porque confiou em Deus.",
+      "+ Mais tarde, Davi se tornou rei, e escreveu muitas músicas para Deus, que estão no livro dos Salmos.",
+      ["?", "medo", "Quando você sente medo, o que ajuda você a ficar com coragem?", ["Um abraço", "Orar", "Respirar fundo", "Ficar perto da família"]],
+      "Que bom saber disso. {medo} ajuda muito. E você pode lembrar: Deus está com você, como estava com Davi.",
+      "Vamos orar: Deus, me dá coragem quando eu sentir medo, e me ajuda a confiar no Senhor. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-daniel", "🦁", "Daniel e os leões", "Daniel 6", [
+      "Hoje a história é sobre Daniel. Ela está na Bíblia, no livro de Daniel.",
+      "Daniel era um homem bom e muito sábio, que trabalhava para o rei Dario.",
+      "Todos os dias, três vezes por dia, Daniel abria a janela do quarto e orava a Deus.",
+      ["?", "orar", "Daniel conversava com Deus todo dia. Você também pode. Sobre o que você gostaria de falar com Deus?", ["Agradecer pela família", "Pedir proteção", "Agradecer pelo dia", "Pedir por um amigo"]],
+      "Que bonito! {orar}. Deus gosta de ouvir você.",
+      "Mas uns homens tinham inveja de Daniel e convenceram o rei a fazer uma lei: ninguém podia orar a Deus por trinta dias.",
+      "Daniel soube da lei, mas continuou orando a Deus, como sempre fazia.",
+      "Os homens contaram ao rei, e o rei ficou muito triste, porque gostava de Daniel. Mas a lei não podia ser mudada.",
+      "Então Daniel foi colocado numa cova onde moravam leões.",
+      "Naquela noite, o rei não conseguiu dormir, pensando em Daniel.",
+      "Mas Deus mandou um anjo, que fechou a boca dos leões. Os leões ficaram mansinhos, deitados, como gatões cansados.",
+      ["?", "leao", "Como você acha que os leões ficaram com o anjo lá?", ["Dormindo", "Ronronando", "Deitados quietinhos", "Brincando"]],
+      "{leao}! E Daniel passou a noite tranquilo, protegido por Deus.",
+      "+ Daniel pode até ter encostado num leão para descansar, quentinho e fofinho.",
+      "Bem cedinho, o rei correu até a cova e chamou: — Daniel! O seu Deus protegeu você?",
+      "E Daniel respondeu: — Sim, ó rei! Deus mandou um anjo e fechou a boca dos leões. Eu estou bem!",
+      "O rei ficou muito feliz e mandou tirar Daniel da cova. Ele não tinha nem um arranhão.",
+      "Então o rei disse para todo o reino: — O Deus de Daniel é o Deus vivo, que salva e protege.",
+      "Vamos orar como Daniel: Deus, obrigado porque o Senhor me protege quando eu durmo. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-jonas", "🐋", "Jonas e o grande peixe", "Jonas 1 a 3", [
+      "Hoje a história da Bíblia é sobre Jonas. Ela está no livro de Jonas.",
+      "Deus pediu a Jonas: — Vá até a cidade de Nínive e diga para o povo parar de fazer coisas erradas.",
+      "Mas Jonas não quis ir. Ele pegou um barco e foi para o lado contrário, bem longe.",
+      "No mar, veio uma tempestade enorme. O vento soprava forte e as ondas balançavam o barco: vuuuu...",
+      "Jonas sabia que a tempestade tinha a ver com ele, que estava fugindo de Deus. Então os marinheiros jogaram Jonas no mar, e o mar ficou calmo.",
+      "Mas Deus não deixou Jonas sozinho. Deus mandou um peixe enorme, que engoliu Jonas inteirinho.",
+      ["?", "dentroPeixe", "Como você acha que era dentro do peixe?", ["Escuro", "Molhado", "Apertado", "Fedido"]],
+      "{dentroPeixe}! Imagina só. Jonas ficou três dias e três noites lá dentro.",
+      "Lá dentro, Jonas orou. Ele pediu desculpas a Deus e agradeceu por ainda estar vivo.",
+      "Então Deus falou com o peixe, e o peixe cuspiu Jonas na praia. Bluuurp!",
+      "+ Jonas ficou todo molhado na areia, mas agradecido.",
+      "Deus pediu de novo: — Vá até Nínive. E dessa vez, Jonas obedeceu.",
+      "Jonas falou com o povo de Nínive, e o povo se arrependeu, parou de fazer coisas erradas e pediu perdão a Deus.",
+      "E Deus perdoou a cidade inteira, porque Deus é cheio de amor e de perdão.",
+      ["?", "perdao", "Quando a gente faz algo errado, o que pode fazer?", ["Pedir desculpas", "Dar um abraço", "Ajudar a consertar", "Falar a verdade"]],
+      "Isso mesmo: {perdao}. E Deus sempre nos dá uma nova chance, como deu para Jonas.",
+      "Vamos orar: Deus, me ajuda a obedecer e a pedir desculpas quando eu errar. Obrigado pelo seu perdão. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-natal", "⭐", "O nascimento de Jesus", "Lucas 2 e Mateus 2", [
+      "Hoje a história é a do nascimento de Jesus. Ela está na Bíblia, nos livros de Lucas e de Mateus.",
+      "Maria e José estavam esperando um bebê. Um anjo tinha contado a Maria que o bebê era o Filho de Deus.",
+      "Eles precisaram viajar até a cidade de Belém. Maria foi montada num burrinho, e José foi andando ao lado.",
+      ["?", "nomeBurrinho", "Que nome você daria para o burrinho de Maria?", ["Pipoca", "Trovão", "Amendoim", "Fofão"]],
+      "{nomeBurrinho} andou devagarinho, com cuidado, por um caminho comprido.",
+      "Quando chegaram a Belém, já era noite. Não tinha lugar nas hospedarias. Estava tudo cheio.",
+      "Então eles ficaram num lugar simples, onde ficavam os animais.",
+      "E ali nasceu Jesus. Maria enrolou o bebê em panos e deitou Jesus numa manjedoura, a caixinha onde os bichos comiam.",
+      ["?", "bichoPresepio", "Que bichinho estava ali, olhando o bebê Jesus?", ["Uma vaquinha", "Uma ovelhinha", "Um burrinho", "Um galo"]],
+      "{bichoPresepio} olhava quietinho o bebê dormindo.",
+      "No campo, uns pastores cuidavam das ovelhas. De repente, apareceu um anjo, e tudo ficou cheio de luz.",
+      "O anjo disse: — Não tenham medo! Eu trago uma notícia de muita alegria: nasceu o Salvador! Vocês vão encontrar o bebê deitado numa manjedoura.",
+      "E muitos anjos apareceram cantando: — Glória a Deus nas alturas, e paz na terra!",
+      "Os pastores foram correndo até Belém e encontraram Jesus, Maria e José. Eles ficaram muito felizes.",
+      "+ Lá no Oriente, uns sábios viram uma estrela diferente no céu e seguiram a estrela até encontrar Jesus. Eles levaram presentes: ouro, incenso e mirra.",
+      ["?", "presente", "Se você fosse visitar o bebê Jesus, o que levaria de presente?", ["Um abraço", "Uma música", "Um cobertor", "Um desenho"]],
+      "Que presente lindo: {presente}! Jesus gosta de presentes que vêm do coração.",
+      "Vamos agradecer: obrigado, Deus, por Jesus, o presente mais lindo do mundo. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-tempestade", "⛵", "Jesus acalma a tempestade", "Marcos 4", [
+      "Hoje a história é sobre um dia em que Jesus estava num barco com os amigos dele. Ela está na Bíblia, no livro de Marcos.",
+      "Jesus tinha passado o dia inteiro ensinando muita gente na beira do lago. No fim da tarde, Ele disse: — Vamos para o outro lado.",
+      "Eles entraram no barco. Jesus estava cansado, deitou na parte de trás, num travesseiro, e dormiu.",
+      "De repente, começou um vento muito forte. As ondas ficaram grandes e a água entrava no barco.",
+      "Os amigos ficaram com muito medo e acordaram Jesus: — Mestre, nós vamos afundar!",
+      "Jesus se levantou, olhou para o vento e para o mar e disse: — Silêncio! Fique quieto!",
+      "E na mesma hora o vento parou e o mar ficou calminho, calminho, liso como um espelho.",
+      ["?", "calmo", "Vamos fazer o mar calmo junto com Jesus? Fale bem baixinho: silêncio, fique quieto. Como ficou?", ["Calminho", "Quietinho", "Tranquilo"]],
+      "{calmo}! Muito bem. Tudo ficou em paz.",
+      "Os amigos ficaram admirados e perguntaram: — Quem é este, que até o vento e o mar obedecem?",
+      "Jesus disse a eles: — Por que vocês ficaram com tanto medo? Confiem em mim.",
+      "+ O barco seguiu devagar pelo lago calmo, e a lua começou a aparecer no céu.",
+      ["?", "tempestadeCoracao", "Às vezes, a gente sente uma tempestade por dentro. O que deixa você nervosa ou com medo?", ["Barulho alto", "Ficar sozinha", "O escuro", "Coisas novas"]],
+      "Obrigado por me contar. Quando sentir uma tempestade por dentro, você pode respirar devagar e lembrar que Jesus traz paz.",
+      "Vamos respirar juntos, como um mar calminho: puxa o ar... e solta. Puxa o ar... e solta.",
+      "Vamos orar: Jesus, quando eu sentir medo, acalma o meu coração, como o Senhor acalmou o mar. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-paes", "🐟", "O menino que dividiu o lanche", "João 6", [
+      "Hoje a história é sobre um menino que dividiu o lanche com Jesus. Ela está na Bíblia, no livro de João.",
+      "Muita, muita gente foi ouvir Jesus num lugar perto de um lago. Eram milhares de pessoas!",
+      "Já era tarde, e todo mundo estava com fome. Mas ali não tinha onde comprar comida.",
+      "Jesus perguntou a Filipe, um dos amigos dele: — Onde vamos comprar pão para toda essa gente?",
+      "Então André, outro amigo, disse: — Aqui tem um menino com cinco pães e dois peixinhos. Mas isso não dá para tanta gente.",
+      ["?", "contarPaes", "Vamos contar? Cinco pães e dois peixinhos. Quantas coisas são ao todo?", ["Sete", "Cinco", "Dois"]],
+      "Muito bem! Cinco pães mais dois peixinhos são sete. Era um lanche pequeno.",
+      "Mas o menino deu o lanche inteirinho para Jesus, com o coração alegre.",
+      "Jesus pediu para todo mundo sentar na grama. Pegou os pães, agradeceu a Deus e começou a repartir.",
+      "E aconteceu um milagre: os pães e os peixes não acabavam! Todo mundo comeu até ficar satisfeito.",
+      "+ As crianças comeram, os papais e as mamães comeram, os vovôs e as vovós comeram. E ainda sobrou!",
+      "Os amigos de Jesus recolheram o que sobrou e encheram doze cestos.",
+      ["?", "dividir", "O menino dividiu o lanche. O que você gosta de dividir com os outros?", ["Brinquedos", "Lanche", "Lápis de cor", "Abraços"]],
+      "Que bonito! Dividir {dividir} deixa os outros felizes, e deixa Deus feliz também.",
+      "Jesus usou um lanche pequeno de um menino para fazer uma coisa enorme. Ele também pode usar o que você tem de bom.",
+      "Vamos orar: Deus, obrigado pela comida de cada dia. Me ajuda a dividir com alegria. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-ovelha", "🐑", "A ovelha perdida", "Lucas 15", [
+      "Hoje a história é uma que o próprio Jesus contou. Ela está na Bíblia, no livro de Lucas.",
+      "Era uma vez um pastor que tinha cem ovelhas. Ele cuidava de todas com muito carinho.",
+      "De manhã, levava as ovelhas para comer grama verdinha. De tarde, levava para beber água fresquinha.",
+      "À noite, o pastor contava as ovelhas, uma por uma, para ver se estavam todas ali.",
+      "Um dia, ele contou: noventa e sete, noventa e oito, noventa e nove... Faltava uma!",
+      ["?", "nomePerdida", "Que nome vamos dar para a ovelhinha que se perdeu?", ["Lã", "Fofinha", "Pipoca", "Nuvenzinha"]],
+      "A ovelhinha {nomePerdida} tinha se afastado das outras e se perdido no meio das pedras.",
+      "O pastor deixou as noventa e nove em lugar seguro e foi procurar a {nomePerdida}.",
+      "Procurou atrás das árvores, no meio do mato, perto do rio, subindo e descendo os morros.",
+      ["?", "ondeOvelha", "Onde você acha que a ovelhinha estava?", ["Atrás de uma pedra", "Presa num arbusto", "Perto do rio", "Dormindo numa caverna"]],
+      "E lá estava ela: {ondeOvelha}! A {nomePerdida} fez: béééé...",
+      "O pastor ficou tão feliz! Ele pegou a ovelhinha no colo, colocou nos ombros e levou de volta para casa.",
+      "+ Ela estava cansada e com frio, mas no colo do pastor ficou quentinha.",
+      "Chegando em casa, ele chamou os amigos e os vizinhos: — Vamos fazer festa! Eu encontrei a minha ovelha que estava perdida!",
+      "Jesus contou essa história para ensinar que Deus é como esse pastor. Cada pessoa é importante para Ele.",
+      "Você, {nome}, é muito importante para Deus. Ele nunca deixa você de lado.",
+      "Vamos orar: Jesus, obrigado porque o Senhor é o meu pastor e cuida de mim. Amém.",
+      "Boa noite, {nome}." ]],
+    ["b-criancas", "🤗", "Jesus e as crianças", "Marcos 10", [
+      "Hoje a história é sobre o dia em que muitas crianças foram ver Jesus. Ela está na Bíblia, no livro de Marcos.",
+      "Jesus estava numa cidade, conversando com muita gente e ensinando sobre o amor de Deus.",
+      "Umas mamães e uns papais levaram os filhos para ver Jesus. Eles queriam que Jesus abençoasse as crianças.",
+      "As crianças chegaram correndo, sorrindo, querendo chegar pertinho.",
+      "Mas os amigos de Jesus acharam que Jesus estava ocupado demais e disseram: — Agora não! Vão embora!",
+      "Quando Jesus viu isso, Ele não gostou. Disse: — Deixem as crianças virem a mim! Não impeçam. O Reino de Deus é de quem é como elas.",
+      ["?", "fazerJesus", "Se você estivesse lá, o que faria quando chegasse perto de Jesus?", ["Daria um abraço", "Sentaria no colo", "Contaria uma história", "Cantaria uma música"]],
+      "Que lindo: {fazerJesus}! Jesus ia adorar.",
+      "Jesus pegou as crianças no colo, colocou as mãos sobre elas e as abençoou, uma por uma.",
+      "+ Cada criança se sentiu amada e importante. Ninguém ficou de fora.",
+      "Jesus ensinou que as crianças são muito especiais para Deus, do jeitinho que elas são.",
+      ["?", "jeitinho", "O que tem de especial no seu jeitinho?", ["Meu sorriso", "Meu abraço", "Minha alegria", "Meu carinho"]],
+      "É verdade: {jeitinho} é muito especial. Deus fez você assim, com amor.",
+      "Jesus ama você, {nome}, todos os dias: nos dias alegres e nos dias difíceis também.",
+      "Vamos orar: Jesus, obrigado porque o Senhor me ama do meu jeitinho. Me abençoa nesta noite. Amém.",
+      "Boa noite, {nome}." ]]
+  ];
+  const BIBLE = BIBLE_LINES.map(([id, e, n, d, lines]) => ({ id, e, n, d, bible: true, steps: lines.map(libStep) }));
   const SAGA = SAGA_LINES.map(([e, n, d, lines], i) => ({ id: "saga" + (i + 1), ch: i, e, n: `A grande viagem · Capítulo ${i + 1}: ${n}`, d, defaults: SAGA_DEFAULTS, steps: lines.map(libStep) }));
 
 
@@ -1941,7 +2162,11 @@ body.night {
         <div class="row">
           ${canNew ? `<button class="btn soft" data-new="1">✨ Uma história nova</button>` : ""}
           ${canNew && S.bed.saga ? `<button class="btn soft" data-new="2">📖 Continuar a aventura de ontem</button>` : ""}
+          <button class="btn soft" id="bible">✝️ Histórias da Bíblia</button>
           <button class="btn soft" id="others">Escolher outra</button>
+        </div>
+        <div class="story-pick" id="blist" hidden>
+          ${BIBLE.map((st, i) => `<button data-b="${i}"><b>${st.e} ${title(st)}</b><small>${st.d}${S.bed.seen.includes(st.id) ? " · já ouvida" : ""}</small></button>`).join("")}
         </div>
         <div class="story-pick" id="list" hidden>
           ${SAGA.map((st, i) => `<button data-c="${i}"><b>${st.e} ${title(st)}</b><small>${st.d}${i < (S.bed.sagaCh || 0) ? " · já ouvido" : ""}</small></button>`).join("")}
@@ -1950,7 +2175,9 @@ body.night {
         <button class="linkish" id="who">Mudar nome ou idade</button>`;
       const play = st => { if (!S.bed.seen.includes(st.id)) S.bed.seen.push(st.id); save(); playTemplate(st); };
       $id("tonight").onclick = () => playTemplate(tonight);
-      $id("others").onclick = () => { $id("list").hidden = !$id("list").hidden; };
+      $id("others").onclick = () => { $id("list").hidden = !$id("list").hidden; $id("blist").hidden = true; };
+      $id("bible").onclick = () => { $id("blist").hidden = !$id("blist").hidden; $id("list").hidden = true; if (!$id("blist").hidden) $id("blist").scrollIntoView({ block: "nearest", behavior: "smooth" }); };
+      p.querySelectorAll("[data-b]").forEach(b => b.onclick = () => play(BIBLE[+b.dataset.b]));
       p.querySelectorAll("[data-s]").forEach(b => b.onclick = () => play(STORIES[+b.dataset.s]));
       p.querySelectorAll("[data-c]").forEach(b => b.onclick = () => playTemplate(SAGA[+b.dataset.c]));
       p.querySelectorAll("[data-new]").forEach(b => b.onclick = () => playLive(b.dataset.new === "2"));
