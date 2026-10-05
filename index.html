@@ -56,6 +56,9 @@
 }
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
+/* Letra bastão: todo o texto aparece em maiúsculas (inclusive campos de digitação). */
+body, input, select, textarea, button { text-transform: uppercase; }
+body { letter-spacing: 0.02em; }
 body {
   background: var(--bg); color: var(--ink);
   font-family: var(--body); font-size: calc(18px * var(--scale)); line-height: 1.55;
@@ -561,7 +564,7 @@ body.night {
   const NO_READ = "#hear, .mic, #mic, .key, .pad, .mcard, .cnt, .dot, .syl, #slow, #fast, #all, #listenFirst, #vtest, [data-noread]";
   let armed = null, armedAt = 0;
   const disarm = () => { if (armed) armed.classList.remove("armed"); armed = null; };
-  const labelOf = b => ((b.innerText || "").replace(/\s*\n+\s*/g, ". ") + " ").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D←→⌫▶🔒]/gu, " ").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "") || (b.getAttribute("aria-label") || "").trim();
+  const labelOf = b => ((b.innerText || "").toLocaleLowerCase("pt-BR").replace(/\s*\n+\s*/g, ". ") + " ").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D←→⌫▶🔒]/gu, " ").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "") || (b.getAttribute("aria-label") || "").trim();
   document.addEventListener("click", e => {
     if (!S.tap2 || !e.isTrusted) return;
     const b = e.target.closest("button, [role=button]");
