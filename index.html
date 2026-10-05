@@ -1,0 +1,1964 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7fa894">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Passinho a Passo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&display=swap">
+<style>
+/* Layout: uma tela por vez, cartões grandes de toque, sempre um botão "Voltar" e um "Ouvir" fixos no topo. */
+:root {
+  --bg: #f3f6f2;          /* verde-acinzentado bem claro, calmo */
+  --surface: #ffffff;
+  --ink: #2f3a36;
+  --muted: #5f6d67;
+  --line: #d9e2dc;
+  --sage: #7fa894;        /* cor principal */
+  --sage-soft: #e1ece5;
+  --sky: #8fb4cf;
+  --sky-soft: #e2ecf4;
+  --sun: #e8c27a;
+  --sun-soft: #f7ecd5;
+  --clay: #d59a86;
+  --clay-soft: #f5e3dc;
+  --lilac: #a99cc8;
+  --lilac-soft: #ebe7f4;
+  --ok: #5d9a76;
+  --focus: #3d6f9a;
+  --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Andika", "Verdana", system-ui, sans-serif;
+  --radius: 22px;
+  --scale: 1;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c2320; --surface: #26302c; --ink: #e6ede9; --muted: #a9b8b1; --line: #36433e;
+    --sage: #8fbba5; --sage-soft: #2f3d37; --sky: #9cc0da; --sky-soft: #2a3742;
+    --sun: #e3c486; --sun-soft: #3d3627; --clay: #dda895; --clay-soft: #3f2f2a;
+    --lilac: #b8acd6; --lilac-soft: #343045; --ok: #8fc9a5; --focus: #a8cdee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c2320; --surface: #26302c; --ink: #e6ede9; --muted: #a9b8b1; --line: #36433e;
+  --sage: #8fbba5; --sage-soft: #2f3d37; --sky: #9cc0da; --sky-soft: #2a3742;
+  --sun: #e3c486; --sun-soft: #3d3627; --clay: #dda895; --clay-soft: #3f2f2a;
+  --lilac: #b8acd6; --lilac-soft: #343045; --ok: #8fc9a5; --focus: #a8cdee;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: calc(18px * var(--scale)); line-height: 1.55;
+  margin: 0; padding-inline: 16px; padding-block: 0 40px;
+}
+.wrap { max-width: 920px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: 1.9em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.15em; }
+p { margin: 0; max-width: 62ch; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* Barra do topo */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  display: flex; align-items: center; gap: 12px; padding-block: 12px;
+  background: var(--bg);
+}
+.top .title { flex: 1; min-width: 0; font-family: var(--display); font-size: 1.15em; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 18px;
+  border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 700;
+}
+.pill.icon { width: 52px; padding: 0; justify-content: center; font-size: 1.3em; }
+.stars { display: inline-flex; align-items: center; gap: 6px; font-family: var(--display); font-weight: 600; padding: 0 14px; min-height: 52px; border-radius: 999px; background: var(--sun-soft); }
+
+/* Início */
+.hello { display: grid; gap: 6px; padding-block: 8px 20px; }
+.hello p { color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card {
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 16px;
+  text-align: left; padding: 20px; border-radius: var(--radius); border: 2px solid transparent;
+  background: var(--tone-soft, var(--sage-soft)); min-height: 120px;
+}
+.card:hover { border-color: var(--tone, var(--sage)); }
+.card .pic { font-size: 2.6em; width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); }
+.card small { display: block; color: var(--muted); font-size: .85em; }
+.t-sage { --tone: var(--sage); --tone-soft: var(--sage-soft); }
+.t-sky { --tone: var(--sky); --tone-soft: var(--sky-soft); }
+.t-sun { --tone: var(--sun); --tone-soft: var(--sun-soft); }
+.t-clay { --tone: var(--clay); --tone-soft: var(--clay-soft); }
+.t-lilac { --tone: var(--lilac); --tone-soft: var(--lilac-soft); }
+
+/* Telas */
+.screen { display: grid; gap: 18px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 10px; }
+.tab { min-height: 48px; padding: 0 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); font-weight: 700; }
+.tab[aria-selected="true"] { background: var(--tone, var(--sage)); border-color: var(--tone, var(--sage)); color: #1f2925; }
+.panel { background: var(--surface); border-radius: var(--radius); padding: 24px; display: grid; gap: 18px; justify-items: center; text-align: center; border: 2px solid var(--line); }
+.hint { color: var(--muted); }
+.big-letter { font-family: var(--body); font-weight: 700; font-size: 6.5em; line-height: 1; color: var(--ink); }
+.choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
+.choice {
+  width: 128px; height: 128px; border-radius: 26px; border: 3px solid var(--line); background: var(--bg);
+  font-size: 3.6em; display: grid; place-items: center;
+}
+.choice.word { width: auto; min-width: 128px; padding: 0 18px; font-size: 1.6em; font-weight: 700; }
+.choice.right { border-color: var(--ok); background: var(--sage-soft); }
+.choice.try { animation: nudge .45s; }
+@keyframes nudge { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-6px)} 60%{transform:translateX(6px)} }
+.feedback { min-height: 1.6em; font-family: var(--display); font-size: 1.2em; font-weight: 600; color: var(--ok); }
+.row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.btn { min-height: 56px; padding: 0 24px; border-radius: 999px; border: 0; background: var(--tone, var(--sage)); color: #1f2925; font-weight: 700; font-size: 1.05em; }
+.btn.soft { background: var(--bg); color: var(--ink); border: 2px solid var(--line); }
+.slots { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.slot { min-width: 110px; height: 72px; border-radius: 18px; border: 3px dashed var(--line); display: grid; place-items: center; font-size: 1.8em; font-weight: 700; }
+.slot.filled { border-style: solid; border-color: var(--ok); background: var(--sage-soft); }
+.emoji-xl { font-size: 5em; line-height: 1; }
+
+/* Dicção */
+.list { display: grid; gap: 12px; width: 100%; text-align: left; }
+.item { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 18px; background: var(--bg); }
+.item .face { font-size: 2.2em; }
+.item p { font-size: 1.05em; }
+.count { display: flex; gap: 6px; flex-wrap: wrap; }
+.dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--tone, var(--sage)); }
+.dot.on { background: var(--tone, var(--sage)); }
+.tongue { font-size: 1.45em; font-weight: 700; line-height: 1.4; }
+.syl-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 520px; }
+.syl { min-height: 64px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); font-size: 1.4em; font-weight: 700; }
+
+/* Cérebro */
+.memory { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 480px; }
+.mcard { aspect-ratio: 1; max-width: 100%; border-radius: 18px; border: 3px solid var(--line); background: var(--lilac-soft); font-size: 2.4em; display: grid; place-items: center; }
+.mcard.open { background: var(--surface); }
+.mcard.done { background: var(--sage-soft); border-color: var(--ok); }
+.simon { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
+.pad { aspect-ratio: 1; border-radius: 28px; border: 4px solid transparent; opacity: .55; font-size: 2.4em; }
+.pad.lit { opacity: 1; border-color: var(--ink); transform: scale(1.03); }
+.pattern { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 2.6em; }
+.pattern .q { width: 1.4em; height: 1.4em; border-radius: 16px; border: 3px dashed var(--muted); display: grid; place-items: center; font-size: .7em; color: var(--muted); }
+
+/* Fora da tela */
+.mission { display: grid; gap: 12px; justify-items: center; }
+.rest { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: grid; place-items: center; padding: 24px; text-align: center; }
+.rest .inner { display: grid; gap: 18px; justify-items: center; max-width: 520px; }
+
+/* Calma */
+.breath { width: 220px; height: 220px; max-width: 100%; border-radius: 50%; background: var(--sky-soft); border: 4px solid var(--sky); display: grid; place-items: center; transition: transform 4s ease-in-out; font-family: var(--display); font-size: 1.3em; font-weight: 600; }
+.breath.in { transform: scale(1.25); }
+
+/* Pais */
+.prose { text-align: left; display: grid; gap: 14px; width: 100%; }
+.prose ul { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.note { padding: 14px 16px; border-radius: 16px; background: var(--sun-soft); text-align: left; }
+.settings { display: grid; gap: 12px; width: 100%; text-align: left; }
+.setting { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px 16px; border-radius: 16px; background: var(--bg); }
+.setting select, .setting input[type="range"] { font: inherit; min-height: 44px; }
+.progress { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; width: 100%; }
+.progress div { padding: 14px; border-radius: 16px; background: var(--bg); text-align: left; }
+.progress b { display: block; font-family: var(--display); font-size: 1.6em; font-variant-numeric: tabular-nums; }
+
+/* Idade, plano do dia e avisos */
+.ages { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; width: 100%; }
+.age { min-height: 80px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); font-family: var(--display); font-size: 1.2em; font-weight: 600; }
+.age[aria-pressed="true"] { border-color: var(--sage); background: var(--sage-soft); }
+.plan { display: grid; gap: 10px; padding: 18px; border-radius: var(--radius); background: var(--surface); border: 2px solid var(--line); margin-bottom: 18px; }
+.plan-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.plan ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; counter-reset: p; }
+.plan li button { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; min-height: 56px; padding: 8px 14px; border-radius: 14px; border: 0; background: var(--bg); }
+.plan li button::before { counter-increment: p; content: counter(p); width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--sage-soft); font-family: var(--display); font-weight: 600; }
+.plan li.done button { color: var(--muted); }
+.plan li.done button::before { content: "✓"; background: var(--sage); color: #1f2925; }
+.linkish { border: 0; background: none; color: var(--focus); text-decoration: underline; font-weight: 700; padding: 4px; }
+.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; justify-content: space-between; padding: 14px 16px; border-radius: 16px; background: var(--sun-soft); margin-bottom: 16px; }
+.suggest { width: 100%; display: grid; gap: 10px; justify-items: center; padding: 14px; border-radius: 16px; background: var(--sky-soft); }
+
+/* Leitura em voz alta */
+.read-word { font-family: var(--body); font-weight: 700; font-size: 3.6em; line-height: 1.1; letter-spacing: .02em; }
+.read-word .sy { padding: 0 .06em; border-radius: 10px; }
+.read-word.split .sy { background: var(--sun-soft); margin: 0 .08em; }
+.mic { width: 96px; height: 96px; border-radius: 50%; border: 0; background: var(--sky); font-size: 2.6em; color: #1f2925; }
+.mic.on { box-shadow: 0 0 0 0 var(--sky); animation: ring 1.4s infinite; }
+@keyframes ring { 0% { box-shadow: 0 0 0 0 var(--sky); } 100% { box-shadow: 0 0 0 22px transparent; } }
+.heard { min-height: 1.5em; color: var(--muted); font-style: italic; }
+.story { font-size: 1.5em; line-height: 1.9; text-align: left; max-width: 34ch; }
+.story .w { border-radius: 8px; padding: 0 2px; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+.story .w.now { background: var(--sky-soft); }
+.story .w.ok { background: var(--sage-soft); }
+.story .w.miss { background: var(--sun-soft); text-decoration: underline dotted; }
+.nomic { padding: 14px 16px; border-radius: 16px; background: var(--sun-soft); text-align: left; width: 100%; }
+
+/* Hora de dormir: um céu noturno fixo, igual nos dois temas */
+body.night {
+  --bg: #161d33; --surface: #1f2846; --ink: #efe8d8; --muted: #aab1c9; --line: #313b5e;
+  --sky: #8ea6d6; --sky-soft: #29335a; --sun: #e9cb8c; --sun-soft: #3a3654; --sage: #9cc3ae; --sage-soft: #263d3a;
+  --focus: #e9cb8c; color-scheme: dark;
+}
+.t-night { --tone: #8ea6d6; --tone-soft: #e6eaf6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .t-night { --tone-soft: #29335a; } }
+:root[data-theme="dark"] .t-night { --tone-soft: #29335a; }
+.story-line { font-size: 1.45em; line-height: 1.7; max-width: 30ch; text-align: left; }
+.story-line .you { color: var(--sun); font-weight: 700; }
+.answer { display: grid; gap: 12px; justify-items: center; width: 100%; }
+.answer input { font: inherit; font-size: 1.15em; min-height: 56px; width: min(100%, 360px); padding: 0 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); }
+.chip { min-height: 52px; padding: 0 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--bg); font-weight: 700; }
+.moon { font-size: 4em; line-height: 1; }
+.wait { color: var(--muted); font-style: italic; }
+.lights-out { position: fixed; inset: 0; z-index: 30; background: #05070e; color: #6d7799; display: grid; place-items: center; text-align: center; padding: 24px; }
+.lights-out .tw { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #c9d2f0; opacity: .5; animation: tw 4s ease-in-out infinite; }
+@keyframes tw { 50% { opacity: .1; } }
+.story-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; }
+.story-pick button { display: grid; gap: 4px; text-align: left; padding: 16px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); }
+.story-pick b { font-family: var(--display); font-size: 1.1em; }
+.story-pick small { color: var(--muted); }
+.form-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+.form-row input, .form-row select { font: inherit; min-height: 52px; padding: 0 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); }
+
+/* Relatório */
+.skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.skcard { display: grid; gap: 8px; padding: 16px; border-radius: 18px; background: var(--bg); min-width: 0; }
+.skhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.delta { font-size: .8em; font-weight: 700; padding: 2px 10px; border-radius: 999px; background: var(--surface); color: var(--muted); }
+.delta.up { background: var(--sage-soft); color: var(--ink); }
+.delta.down { background: var(--sun-soft); color: var(--ink); }
+.sklevel { display: flex; align-items: baseline; gap: 8px; }
+.sklevel .num { font-family: var(--display); font-size: 2em; font-weight: 600; font-variant-numeric: tabular-nums; }
+.skcard small { font-size: .85em; }
+/* Números */
+.count-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 460px; }
+.cnt { width: 58px; height: 58px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); font-size: 1.8em; }
+.cnt.on { border-color: var(--ok); background: var(--sage-soft); }
+.pics { display: inline-flex; flex-wrap: wrap; gap: 2px; font-size: 1.7em; justify-content: center; max-width: 100%; }
+.sum-pics { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+.op { font-size: 1.8em; font-family: var(--display); }
+.bignum { font-family: var(--display); font-size: 2.6em; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+.side { min-height: 130px; border-radius: 22px; border: 3px solid var(--line); background: var(--bg); padding: 10px; display: grid; place-items: center; }
+.side.right { border-color: var(--ok); background: var(--sage-soft); }
+.side.try { animation: nudge .45s; }
+/* Abertura, tempo e senha */
+.splash { min-height: 80vh; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; padding-block: 24px; }
+.splash .sun { font-size: 5em; line-height: 1; }
+.btn.big { min-height: 68px; font-size: 1.25em; padding: 0 32px; }
+.clock { display: grid; gap: 6px; padding: 12px 16px; border-radius: 16px; background: var(--sun-soft); margin-bottom: 16px; }
+.clock .bar { height: 12px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+.clock .bar span { display: block; height: 100%; background: var(--sun); border-radius: 999px; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 40; display: flex; gap: 12px; align-items: center; padding: 16px 18px; border-radius: 18px; background: var(--sun-soft); color: var(--ink); border: 2px solid var(--sun); font-size: 1.1em; font-weight: 700; max-width: 640px; margin: 0 auto; }
+.toast .hourglass { font-size: 1.8em; }
+.pin { font-size: 2em; letter-spacing: .2em; font-family: var(--display); }
+.keypad { display: grid; grid-template-columns: repeat(3, 76px); gap: 10px; justify-content: center; }
+.key { height: 64px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); font-size: 1.5em; font-weight: 700; }
+.parent-link { display: flex; justify-content: center; padding-block: 24px 8px; }
+.tonight { display: flex; gap: 16px; align-items: center; width: 100%; text-align: left; padding: 18px 20px; border-radius: 22px; border: 2px solid var(--sun); background: var(--sun-soft); color: var(--ink); }
+.tonight .te { font-size: 2.8em; }
+.tonight small { display: block; color: var(--muted); }
+.tonight b { font-family: var(--display); font-size: 1.3em; }
+.calm-motion *, .calm-motion *::before { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 480px) {
+  .choice { width: 96px; height: 96px; font-size: 2.8em; }
+  .big-letter { font-size: 5em; }
+  .syl-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .syl { font-size: 1.1em; }
+  .item { grid-template-columns: auto 1fr; }
+  .item .count, .item .btn { grid-column: 1 / -1; }
+  .top .title { display: none; }
+}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(() => {
+  // ---------- Estado salvo (só neste aparelho) ----------
+  const KEY = "passinho-v1";
+  const defaults = { stars: { numeros: 0, letras: 0, leitura: 0, fala: 0, cerebro: 0, fora: 0, calma: 0, dormir: 0, avaliar: 0 }, voice: true, rate: 0.85, calm: false, size: 1, name: "", age: 0, pin: "", limit: { mins: 30, bedFree: true }, usage: null, bed: { facts: {}, saga: "" }, level: 0, sk: {}, log: [], evals: [], plan: { day: "", done: [] }, words: {} };
+  let S = structuredClone(defaults);
+  try { const raw = localStorage.getItem(KEY); if (raw) { S = Object.assign(S, JSON.parse(raw)); S.stars = Object.assign(structuredClone(defaults.stars), S.stars); } } catch (e) {}
+  const $id = id => document.getElementById(id);
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  const applyPrefs = () => {
+    document.documentElement.style.setProperty("--scale", S.size);
+    document.body.classList.toggle("calm-motion", S.calm);
+  };
+
+  // ---------- Voz em português ----------
+  let ptVoice = null;
+  const pickVoice = () => {
+    if (!("speechSynthesis" in window)) return;
+    const vs = speechSynthesis.getVoices();
+    ptVoice = vs.find(v => v.lang === "pt-BR") || vs.find(v => v.lang && v.lang.startsWith("pt")) || null;
+  };
+  if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  const say = (text, rate) => {
+    if (!S.voice || !("speechSynthesis" in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "pt-BR"; if (ptVoice) u.voice = ptVoice;
+      u.rate = rate || S.rate; u.pitch = 1.05;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  };
+
+  const rand = a => a[Math.floor(Math.random() * a.length)];
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const praise = ["Muito bem!", "Isso mesmo!", "Você conseguiu!", "Que legal!", "Parabéns pelo esforço!"];
+  const retry = ["Quase! Vamos tentar de novo.", "Tudo bem errar. Tente outra vez.", "Olhe com calma e tente de novo."];
+  let curTab = 0;
+  const star = area => { S.stars[area] = (S.stars[area] || 0) + 1; markPlan(area, curTab); const el = document.getElementById("starCount"); if (el) el.textContent = total(); };
+  const total = () => Object.values(S.stars).reduce((a, b) => a + b, 0);
+  const h = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+  // ---------- Conteúdo ----------
+  const WORDS = [
+    { l: "A", w: "abelha", e: "🐝", s: ["A", "BE", "LHA"] }, { l: "B", w: "bola", e: "⚽", s: ["BO", "LA"] },
+    { l: "C", w: "casa", e: "🏠", s: ["CA", "SA"] }, { l: "D", w: "dado", e: "🎲", s: ["DA", "DO"] },
+    { l: "E", w: "estrela", e: "⭐" }, { l: "F", w: "faca", e: "🔪", hide: true },
+    { l: "F", w: "foca", e: "🦭", s: ["FO", "CA"] }, { l: "G", w: "gato", e: "🐱", s: ["GA", "TO"] },
+    { l: "L", w: "lua", e: "🌙", s: ["LU", "A"] }, { l: "M", w: "macaco", e: "🐒", s: ["MA", "CA", "CO"] },
+    { l: "P", w: "pato", e: "🦆", s: ["PA", "TO"] }, { l: "S", w: "sapo", e: "🐸", s: ["SA", "PO"] },
+    { l: "U", w: "uva", e: "🍇", s: ["U", "VA"] }, { l: "V", w: "vaca", e: "🐄", s: ["VA", "CA"] },
+    { l: "O", w: "ovo", e: "🥚", s: ["O", "VO"] }, { l: "T", w: "tatu", e: "🦔", hide: true },
+    { l: "J", w: "janela", e: "🪟", s: ["JA", "NE", "LA"] }, { l: "R", w: "rato", e: "🐭", s: ["RA", "TO"] }
+  ].filter(x => !x.hide);
+
+  const MOUTH = [
+    { f: "😗", t: "Faça biquinho de beijo e depois sorria bem grande.", say: "Faça biquinho de beijo. Agora sorria bem grande!" },
+    { f: "😛", t: "Ponha a língua para fora e tente tocar o nariz.", say: "Ponha a língua para fora e tente tocar o nariz." },
+    { f: "🐴", t: "Estale a língua como cavalinho: cloc, cloc.", say: "Estale a língua como um cavalinho. Cloc, cloc!" },
+    { f: "🎈", t: "Encha as bochechas de ar e segure. Solte devagar.", say: "Encha as bochechas de ar, segure, e solte bem devagar." },
+    { f: "🕯️", t: "Assopre uma vela imaginária bem devagar.", say: "Assopre uma vela de mentirinha, bem devagar." },
+    { f: "👅", t: "Passe a língua nos dentes, de um lado ao outro.", say: "Passe a língua nos dentes, de um lado para o outro." }
+  ];
+  const TONGUE = [
+    "O rato roeu a roupa do rei de Roma.",
+    "Três pratos de trigo para três tigres tristes.",
+    "A aranha arranha a rã. A rã arranha a aranha.",
+    "O sapo não lava o pé.",
+    "Pinga a pipa, pipa a pinga.",
+    "Bote a bota no bote e tire o pó do bote."
+  ];
+  const CONS = ["B", "P", "M", "T", "D", "L", "F", "V", "S", "R"];
+
+  const EMO = ["🐶", "🐱", "🦊", "🐢", "🐳", "🦋", "🍎", "🌻"];
+  const PADS = [
+    { c: "var(--sage)", n: "verde", e: "🐸" }, { c: "var(--sky)", n: "azul", e: "🐳" },
+    { c: "var(--sun)", n: "amarelo", e: "🐥" }, { c: "var(--clay)", n: "laranja", e: "🦊" }
+  ];
+  const PAT = [["🔵", "🟡"], ["🍎", "🍌", "🍇"], ["🐶", "🐶", "🐱"], ["⭐", "🌙"], ["🟥", "🟦", "🟦"]];
+
+  const MISSIONS = [
+    { e: "🔵", t: "Encontre 3 coisas azuis pela casa e mostre para alguém." },
+    { e: "🐸", t: "Pule como um sapo 5 vezes. Conte em voz alta!" },
+    { e: "🤗", t: "Dê um abraço apertado em alguém da família." },
+    { e: "🖍️", t: "Desenhe no papel o seu animal favorito." },
+    { e: "🦶", t: "Ande na ponta dos pés até a porta e volte." },
+    { e: "🪟", t: "Conte quantas janelas tem na sua casa." },
+    { e: "🧸", t: "Ajude a guardar 5 brinquedos no lugar." },
+    { e: "🧱", t: "Faça uma torre com 5 objetos sem deixar cair." },
+    { e: "🐘", t: "Imite um animal. Alguém precisa adivinhar qual é!" },
+    { e: "🪴", t: "Com um adulto, regue uma planta." },
+    { e: "👂", t: "Feche os olhos e diga 3 sons que você está ouvindo." },
+    { e: "🧦", t: "Encontre um par de meias iguais." }
+  ];
+
+  const AREAS = [
+    { id: "letras", tone: "t-sage", e: "🔤", n: "Letras e palavras", d: "Conhecer letras e montar palavras", intro: "Vamos brincar com as letras!" },
+    { id: "numeros", tone: "t-sun", e: "🔢", n: "Números e contas", d: "Contar, comparar e fazer continhas", intro: "Vamos brincar com os números!" },
+    { id: "leitura", tone: "t-sky", e: "📖", n: "Leitura em voz alta", d: "Eu leio e o app escuta", intro: "Vamos ler juntos!" },
+    { id: "fala", tone: "t-sky", e: "🗣️", n: "Treino da fala", d: "Boca, sílabas e trava-línguas", intro: "Vamos treinar a fala, bem devagar." },
+    { id: "cerebro", tone: "t-lilac", e: "🧩", n: "Desafios do pensar", d: "Memória, sequência e padrões", intro: "Vamos pensar juntos!" },
+    { id: "fora", tone: "t-sun", e: "🌳", n: "Missões fora da tela", d: "Brincar longe do celular", intro: "Hora de uma missão longe da tela!" },
+    { id: "calma", tone: "t-clay", e: "🫧", n: "Cantinho da calma", d: "Respirar e se acalmar", intro: "Vamos respirar devagar juntos." },
+    { id: "dormir", tone: "t-night", e: "🌙", n: "Hora de dormir", d: "Uma história em que você é a personagem", intro: "Hora de dormir." }
+  ];
+
+  // ---------- Níveis por idade ----------
+  // Cada nível é um ponto de partida. O app sugere subir ou descer, nunca muda sozinho.
+  const LEVELS = [
+    null,
+    { age: "4 a 5 anos", short: "4–5", opts: 3, maxSyl: 2, distract: false, pairs: 3, seq: 1, patMax: 2,
+      expect: ["Reconhece algumas letras, principalmente as do próprio nome.", "Brinca com rimas e com o som do começo das palavras.", "Fala frases curtas e conta pequenas histórias."],
+      plan: [["letras", 0], ["numeros", 0], ["fala", 0], ["fora", 0]],
+      words: ["bo-la", "ca-sa", "pa-to", "ga-to", "sa-po", "u-va", "lu-a", "da-do", "ma-la", "va-ca", "fa-da", "pi-pa"],
+      texts: ["O pato nada.", "A bola é azul.", "O gato mia.", "Eu amo a mamãe.", "A lua é bonita."] },
+    { age: "6 a 7 anos", short: "6–7", opts: 3, maxSyl: 3, distract: false, pairs: 4, seq: 2, patMax: 3,
+      expect: ["Liga cada letra ao seu som.", "Lê palavras simples e frases curtas, ainda devagar.", "A alfabetização costuma se completar até o fim do 2º ano."],
+      plan: [["leitura", 0], ["numeros", 2], ["letras", 1], ["fora", 0]],
+      words: ["ma-ca-co", "bo-ne-ca", "ja-ne-la", "sa-pa-to", "ca-va-lo", "ba-na-na", "to-ma-te", "me-ni-no", "pe-te-ca", "pa-ne-la", "ca-ne-ta", "gi-ra-fa"],
+      texts: ["A Lia tem uma boneca. A boneca usa um vestido azul. A Lia e a boneca vão ao parque.", "O macaco come banana. Ele pula na árvore. O macaco é muito feliz."] },
+    { age: "8 a 9 anos", short: "8–9", opts: 4, maxSyl: 3, distract: true, pairs: 6, seq: 3, patMax: 3,
+      expect: ["Lê pequenos textos sozinha.", "Entende e conta o que leu.", "Lê palavras com CH, LH, NH, RR e SS."],
+      plan: [["leitura", 1], ["numeros", 2], ["fala", 2], ["fora", 0]],
+      words: ["chu-va", "ga-li-nha", "car-ro", "pás-sa-ro", "quei-jo", "gui-tar-ra", "pa-lha-ço", "cho-co-la-te", "bru-xa", "flo-res", "es-co-la", "te-lha-do"],
+      texts: ["Hoje choveu muito na cidade. O Pedro calçou as botas e pulou nas poças. Depois, tomou chocolate quente com a avó.", "A galinha botou um ovo. O pintinho nasceu amarelo e piou baixinho. A galinha ficou muito orgulhosa."] },
+    { age: "10 anos ou mais", short: "10+", opts: 4, maxSyl: 3, distract: true, pairs: 6, seq: 3, patMax: 3,
+      expect: ["Lê textos maiores com fluência e entonação.", "Percebe o que o texto diz nas entrelinhas.", "Lê palavras longas sem precisar separar."],
+      plan: [["leitura", 1], ["numeros", 2], ["cerebro", 2], ["fora", 0]],
+      words: ["bi-ci-cle-ta", "tra-ves-sei-ro", "pro-ble-ma", "bi-bli-o-te-ca", "di-nos-sau-ro", "ge-la-dei-ra", "bor-bo-le-ta", "ex-plo-rar", "pla-ne-ta", "as-tro-nau-ta", "re-fri-ge-ran-te", "ter-mô-me-tro"],
+      texts: ["A astronauta Clara olhou pela janela da nave. Lá embaixo, a Terra parecia uma bola azul. Ela anotou tudo no caderno para contar aos alunos da escola.", "Na biblioteca da escola, Davi encontrou um livro sobre dinossauros. Ele descobriu que alguns eram do tamanho de uma galinha."] }
+  ];
+  const LV = () => LEVELS[S.level || 2];
+  const TAB_NAMES = { numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra"], leitura: ["Ler palavras", "Ler um texto"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?"], fora: ["Missão"], calma: ["Respirar"] };
+  const today = () => new Date().toISOString().slice(0, 10);
+  const planKey = (a, t) => a + ":" + t;
+  const markPlan = (area, tab) => { if (S.plan.day !== today()) S.plan = { day: today(), done: [] }; const k = planKey(area, tab); if (!S.plan.done.includes(k)) S.plan.done.push(k); save(); };
+
+  // ---------- Habilidades: nível próprio de cada uma, registro de tentativas ----------
+  const SKILLS = {
+    letras: { n: "Letras e sons", e: "🔤", go: ["letras", 0],
+      desc: ["Ainda começando", "Encontra a letra pelo som", "Reconhece letras minúsculas", "Descobre a primeira letra de uma palavra", "Diferencia palavras escritas parecidas"] },
+    leitura: { n: "Leitura", e: "📖", go: ["leitura", 0],
+      desc: ["Ainda começando", "Lê palavras simples de 2 sílabas", "Lê palavras de 3 sílabas", "Lê palavras com CH, LH, NH e RR", "Lê palavras longas"] },
+    memoria: { n: "Memória", e: "🧠", go: ["cerebro", 1],
+      desc: ["Ainda começando", "Lembra 2 figuras em ordem", "Lembra 3 figuras em ordem", "Lembra 4 figuras em ordem", "Lembra 5 figuras em ordem"] },
+    matematica: { n: "Matemática", e: "🔢", go: ["numeros", 2],
+      desc: ["Ainda começando", "Conta até 5 objetos", "Soma até 10 com figuras", "Soma e subtrai até 20", "Faz contas com dezenas e multiplica"] },
+    raciocinio: { n: "Raciocínio", e: "🧩", go: ["cerebro", 2],
+      desc: ["Ainda começando", "Completa padrões de 2 figuras", "Completa padrões de 3 figuras", "Completa padrões com repetição", "Continua sequências de números"] }
+  };
+  const levelFromAge = a => a <= 5 ? 1 : a <= 7 ? 2 : a <= 9 ? 3 : 4;
+  const skLv = k => (S.sk && S.sk[k]) || S.level || 2;
+  const LVs = k => LEVELS[skLv(k)];
+  const logTry = (skill, ok) => { S.log.push({ d: today(), s: skill, ok: ok ? 1 : 0, l: skLv(skill) }); if (S.log.length > 3000) S.log.splice(0, S.log.length - 3000); save(); };
+  const recent = (k, days) => { const from = new Date(Date.now() - days * 864e5).toISOString().slice(0, 10); const xs = S.log.filter(x => x.s === k && x.d >= from); return { n: xs.length, ok: xs.filter(x => x.ok).length }; };
+  const lastEval = () => S.evals[S.evals.length - 1];
+  const evalDue = () => !lastEval() || (Date.now() - new Date(lastEval().date).getTime()) / 864e5 >= 14;
+
+  // Sugestão gentil por habilidade: 6 acertos seguidos sugere subir, 3 dificuldades seguidas sugere descer.
+  const runs = {}, suggested = {};
+  function track(ok, panel, skill) {
+    if (!skill) return;
+    logTry(skill, ok);
+    const run = runs[skill] = runs[skill] || { ok: 0, hard: 0 };
+    if (ok) { run.ok++; run.hard = 0; } else { run.hard++; run.ok = 0; }
+    if (suggested[skill] || !panel) return;
+    const lv = skLv(skill), up = run.ok >= 6 && lv < 4, down = run.hard >= 3 && lv > 1;
+    if (!up && !down) return;
+    suggested[skill] = true;
+    const box = h(`<div class="suggest"><p>${up ? "Isso está ficando fácil! Quer tentar um desafio um pouco maior?" : "Que tal voltar para algo mais tranquilo agora? Tudo bem ir devagar."}</p>
+      <div class="row"><button class="btn">${up ? "Quero tentar" : "Sim, mais tranquilo"}</button><button class="btn soft">Continuar assim</button></div></div>`);
+    const [yes, no] = box.querySelectorAll("button");
+    yes.onclick = () => { S.sk[skill] = lv + (up ? 1 : -1); save(); runs[skill] = { ok: 0, hard: 0 }; box.remove(); say(up ? "Oba! Vamos lá." : "Combinado."); };
+    no.onclick = () => { runs[skill] = { ok: 0, hard: 0 }; box.remove(); };
+    panel.appendChild(box);
+    say(up ? "Isso está ficando fácil! Quer tentar um desafio maior?" : "Que tal algo mais tranquilo?");
+  }
+
+  // ---------- Escuta da voz (reconhecimento de fala do navegador) ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let micBlocked = false;
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  const lev = (a, b) => {
+    const d = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) { let prev = d[0]; d[0] = i;
+      for (let j = 1; j <= b.length; j++) { const t = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; } }
+    return d[b.length];
+  };
+  const sim = (a, b) => { a = norm(a); b = norm(b); if (!a || !b) return 0; return 1 - lev(a, b) / Math.max(a.length, b.length); };
+  // Melhor nota entre todas as alternativas ouvidas e cada palavra dentro delas.
+  const judgeWord = (target, alts) => {
+    let best = 0, heard = alts[0] || "";
+    alts.forEach(t => { [t, ...norm(t).split(" ")].forEach(x => { const s = sim(target, x); if (s > best) { best = s; heard = x; } }); });
+    return { score: best, heard };
+  };
+  // Alinha o que foi ouvido com as palavras do texto, em ordem, tolerando pequenas trocas.
+  const alignText = (targets, heardText) => {
+    const heard = norm(heardText).split(" ").filter(Boolean);
+    let j = 0;
+    return targets.map(t => {
+      for (let k = j; k < Math.min(heard.length, j + 4); k++) if (sim(t, heard[k]) >= 0.7) { j = k + 1; return true; }
+      return false;
+    });
+  };
+  function listen({ continuous, onText, onDone, onFail }) {
+    if (!SR || micBlocked) { onFail("indisponivel"); return () => {}; }
+    if ("speechSynthesis" in window) try { speechSynthesis.cancel(); } catch (e) {}
+    const r = new SR();
+    r.lang = "pt-BR"; r.interimResults = true; r.continuous = !!continuous; r.maxAlternatives = 5;
+    let finalText = "", alts = [], failed = false;
+    r.onresult = e => {
+      let interim = ""; finalText = "";
+      for (let i = 0; i < e.results.length; i++) {
+        const res = e.results[i];
+        if (res.isFinal) { finalText += res[0].transcript + " "; if (!continuous) alts = Array.from(res).map(a => a.transcript); }
+        else interim += res[0].transcript;
+      }
+      onText((finalText + interim).trim(), false);
+    };
+    r.onerror = e => {
+      if (["not-allowed", "service-not-allowed", "audio-capture"].includes(e.error)) { micBlocked = true; failed = true; onFail("bloqueado"); }
+      else if (e.error === "network") { failed = true; onFail("rede"); }
+    };
+    r.onend = () => { if (!failed) onDone(finalText.trim(), alts.length ? alts : [finalText.trim()]); };
+    try { r.start(); } catch (e) { onFail("indisponivel"); }
+    return () => { try { r.stop(); } catch (e) {} };
+  }
+  const noMicHtml = why => `<div class="nomic"><b>O app não consegue ouvir aqui.</b> ${why === "rede" ? "A escuta precisa de internet." : why === "bloqueado" ? "O microfone foi bloqueado neste navegador ou nesta página." : "Este navegador não tem escuta de voz (funciona no Chrome e no Safari)."} Sem problema: um adulto escuta a criança e toca no botão certo abaixo.</div>`;
+
+  // ---------- Navegação ----------
+  const app = document.getElementById("app");
+  let current = "home";
+  let cleanup = null;
+
+  function topBar(title, area) {
+    const back = area ? `<button class="pill" data-go="home" aria-label="Voltar ao início">← Voltar</button>` : "";
+    return `<header class="top">
+      ${back}
+      <span class="title">${title}</span>
+      <button class="pill icon" id="hear" aria-label="Ouvir a instrução">🔊</button>
+      <span class="stars" aria-label="Estrelas">⭐ <span id="starCount">${total()}</span></span>
+    </header>`;
+  }
+
+  function go(id, tab) {
+    startTab = +tab || 0;
+    if (S.name && S.age && timeOver() && !FREE_SCREENS.includes(id) && !(id === "dormir" && S.limit.bedFree)) id = "fim";
+    if ((id === "pais" || id === "relatorio") && Date.now() > parentUntil) return gate(() => go(id, tab));
+    if (cleanup) { cleanup(); cleanup = null; }
+    if ("speechSynthesis" in window) try { speechSynthesis.cancel(); } catch (e) {}
+    current = id;
+    app.innerHTML = "";
+    ({ splash, fim, home, numeros, letras, leitura, fala, cerebro, fora, calma, dormir, pais, avaliar, relatorio })[id]();
+    window.scrollTo(0, 0);
+    try { history.replaceState(null, "", id === "home" ? location.pathname : "#" + id); } catch (e) {}
+  }
+  let startTab = 0, pauseDue = false;
+  setTimeout(() => { pauseDue = true; if (current === "home") go("home"); }, 15 * 60 * 1000);
+  app.addEventListener("click", e => { const g = e.target.closest("[data-go]"); if (g) go(g.dataset.go, g.dataset.t); });
+
+  const ageSelect = id => `<select id="${id}">${[3,4,5,6,7,8,9,10,11,12].map(n => `<option value="${n}" ${S.age == n ? "selected" : ""}>${n} anos</option>`).join("")}</select>`;
+  // Idade muda o ponto de partida; o nível de cada habilidade só muda pela avaliação ou quando a família aceita uma sugestão.
+  const setAge = (age, resetSkills) => {
+    S.age = age; S.level = levelFromAge(age);
+    if (resetSkills || !Object.keys(S.sk).length) Object.keys(SKILLS).forEach(k => S.sk[k] = S.level);
+    save();
+  };
+  const escapeHtml = s => String(s).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" })[c]);
+
+  function welcome() {
+    app.innerHTML = topBar("Passinho a Passo") + `<section class="hello"><h1>Olá! Que bom ter você aqui.</h1>
+      <p>Antes de brincar, conte para mim quem vai usar o app. Um adulto pode ajudar.</p></section>
+      <section class="plan">
+        <div class="form-row" style="justify-content:flex-start"><label for="wn"><b>Qual é o seu nome?</b></label><input id="wn" maxlength="20" autocomplete="off" placeholder="Nome da criança"></div>
+        <div class="form-row" style="justify-content:flex-start"><label for="wa"><b>Quantos anos você tem?</b></label>${ageSelect("wa")}</div>
+        <p class="hint">A idade escolhe o ponto de partida das atividades. Depois, o Desafio das estrelas ajusta cada habilidade ao jeito da criança.</p>
+        <button class="btn" id="wgo">Começar</button>
+      </section>`;
+    $id("wa").value = String(S.age || 6);
+    if (S.name) $id("wn").value = S.name;
+    $id("wgo").onclick = () => {
+      const n = clean($id("wn").value);
+      if (!n) { $id("wn").focus(); say("Escreva o seu nome, por favor."); return; }
+      S.name = cap(n); setAge(+$id("wa").value, true); go("home");
+      say(`Oi, ${S.name}! Vamos brincar?`);
+    };
+    document.getElementById("hear").onclick = () => say("Olá! Qual é o seu nome? E quantos anos você tem?");
+    say("Olá! Qual é o seu nome? E quantos anos você tem?");
+  }
+
+  // Plano do dia: começa pela habilidade que mais precisa de carinho, depois o plano da idade.
+  function dailyPlan() {
+    const items = [];
+    if (evalDue()) items.push({ go: "avaliar", t: 0, e: "⭐", label: lastEval() ? "Desafio das estrelas (hora de ver a evolução)" : "Desafio das estrelas (primeira vez)" });
+    const weak = Object.keys(SKILLS).map(k => { const r = recent(k, 7); return { k, score: r.n >= 4 ? r.ok / r.n : 1, lv: skLv(k) }; })
+      .sort((a, b) => a.score - b.score || a.lv - b.lv)[0];
+    const sk = SKILLS[weak.k];
+    items.push({ go: sk.go[0], t: sk.go[1], e: sk.e, label: `${sk.n}: ${TAB_NAMES[sk.go[0]][sk.go[1]]}` });
+    LV().plan.forEach(([a, t]) => { if (items.length < 3 && !items.some(x => x.go === a && x.t === t)) { const ar = AREAS.find(x => x.id === a); items.push({ go: a, t, e: ar.e, label: `${ar.n}: ${TAB_NAMES[a][t]}` }); } });
+    if (!items.some(x => x.go === "fora")) items.push({ go: "fora", t: 0, e: "🌳", label: "Missões fora da tela: Missão" });
+    return items;
+  }
+
+  function home() {
+    if (!S.name || !S.age) return welcome();
+    const nm = `, ${S.name}`;
+    if (S.plan.day !== today()) { S.plan = { day: today(), done: [] }; save(); }
+    const items = dailyPlan();
+    const isDone = x => S.plan.done.includes(planKey(x.go, x.t));
+    const doneCount = items.filter(isDone).length;
+    app.innerHTML = topBar("Passinho a Passo") + `
+      <section class="hello">
+        <h1>Olá${nm}! O que vamos fazer hoje?</h1>
+        <p>Escolha uma brincadeira. Não tem pressa e não tem erro feio: cada tentativa vale.</p>
+      </section>
+      ${pauseDue ? `<div class="banner"><span>Vocês já brincaram um bom tempo. Que tal uma pausa com uma missão fora da tela?</span><button class="btn" data-go="fora" style="background:var(--sun)">Ver missão</button></div>` : ""}
+      ${clockHtml()}
+      <section class="plan"><div class="plan-head"><h3>Plano de hoje</h3>
+          <span class="hint">${S.age} anos</span></div>
+        <ol>${items.map(x => `<li class="${isDone(x) ? "done" : ""}"><button data-go="${x.go}" data-t="${x.t}"><span>${x.e}</span><span>${x.label}</span></button></li>`).join("")}</ol>
+        <p class="hint">${doneCount === items.length ? "Plano completo! Agora é hora de brincar livre, longe da tela." : `${doneCount} de ${items.length} feitos. Pode parar quando quiser.`}</p></section>
+      <nav class="grid">
+        <button class="card t-sun" data-go="avaliar"><span class="pic" aria-hidden="true">⭐</span><span><h3>Desafio das estrelas</h3><small>Mostrar o quanto eu já sei</small></span></button>
+        ${AREAS.map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}
+      </nav>
+      <div class="parent-link"><button class="linkish" data-go="pais">🔒 Área dos pais</button></div>`;
+    document.getElementById("hear").onclick = () => say(`Olá${nm}! Vamos fazer o plano de hoje?`);
+  }
+
+  // ---------- Saudação, tempo de uso e senha dos pais ----------
+  const period = () => { const hr = new Date().getHours(); return hr >= 5 && hr < 12 ? { g: "Bom dia", e: "🌅" } : hr >= 12 && hr < 18 ? { g: "Boa tarde", e: "☀️" } : { g: "Boa noite", e: "🌙" }; };
+  const GREET = {
+    "Bom dia": ["Que bom te ver logo cedo!", "O dia está começando. Vamos aprender uma coisa nova?", "Dormiu bem? Hoje vai ser um dia legal."],
+    "Boa tarde": ["Que bom que você voltou!", "Vamos brincar um pouquinho?", "Senti saudade de você!"],
+    "Boa noite": ["Já está ficando de noite.", "Que tal uma brincadeira calma ou uma história?", "Que bom te ver antes de dormir."]
+  };
+  const usage = () => { if (!S.usage || S.usage.day !== today()) { S.usage = { day: today(), secs: 0, extra: 0, w5: false, w1: false }; save(); } return S.usage; };
+  const leftSecs = () => S.limit.mins ? S.limit.mins * 60 + usage().extra * 60 - usage().secs : Infinity;
+  const timeOver = () => leftSecs() <= 0;
+  const leftText = () => { const m = Math.ceil(leftSecs() / 60); return m === 1 ? "1 minuto" : `${m} minutos`; };
+  const FREE_SCREENS = ["splash", "fim", "pais", "relatorio", "gate"];
+
+  function toast(text) {
+    const old = document.querySelector(".toast"); if (old) old.remove();
+    const t = h(`<div class="toast" role="status"><span class="hourglass" aria-hidden="true">⏳</span><span>${text}</span></div>`);
+    document.body.appendChild(t); say(text);
+    setTimeout(() => t.remove(), 9000);
+  }
+  // Conta o tempo só com o app aberto e à vista. A Hora de dormir pode ficar fora da conta.
+  setInterval(() => {
+    if (document.hidden || !S.limit.mins || FREE_SCREENS.includes(current) || (current === "dormir" && S.limit.bedFree)) return;
+    const u = usage(); u.secs += 10; save();
+    const left = leftSecs();
+    if (left <= 300 && left > 60 && !u.w5) { u.w5 = true; save(); toast(`${S.name}, faltam 5 minutos. Vamos escolher a última brincadeira?`); }
+    if (left <= 60 && left > 0 && !u.w1) { u.w1 = true; save(); toast("Falta 1 minuto. Vamos terminar com calma."); }
+    if (left <= 0) go("fim");
+    const clock = $id("clock"); if (clock) clock.outerHTML = clockHtml();
+  }, 10000);
+  const clockHtml = () => {
+    if (!S.limit.mins) return `<div id="clock"></div>`;
+    const total = (S.limit.mins + usage().extra) * 60, left = Math.max(0, leftSecs()), pct = Math.round(100 * left / total);
+    return `<div id="clock" class="clock" aria-label="Tempo que falta hoje: ${leftText()}"><span>⏳ Hoje ainda tem <b>${leftText()}</b></span><span class="bar"><span style="width:${pct}%"></span></span></div>`;
+  };
+
+  // Abertura: toda vez que o app abre (ou volta depois de um tempo) a criança é cumprimentada.
+  function splash() {
+    if (!S.name || !S.age) return go("home");
+    if (timeOver()) return go("fim");
+    const pr = period(), line = rand(GREET[pr.g]), night = new Date().getHours() >= 19 || new Date().getHours() < 5;
+    app.innerHTML = `<section class="splash">
+      <div class="sun" aria-hidden="true">${pr.e}</div>
+      <h1>${pr.g}, ${escapeHtml(S.name)}!</h1>
+      <p class="story-line" style="text-align:center">${line}</p>
+      ${S.limit.mins ? `<p class="hint">Hoje você tem ${leftText()} para brincar.</p>` : ""}
+      <div class="row"><button class="btn big" id="start">Vamos lá! ▶</button>${night ? `<button class="btn soft big" id="sleep">🌙 Hora de dormir</button>` : ""}</div>
+    </section>`;
+    // O navegador só deixa falar depois de um toque, então a voz cumprimenta ao tocar.
+    $id("start").onclick = () => { go("home"); say(`${pr.g}, ${S.name}! ${line}`); };
+    if (night) $id("sleep").onclick = () => { go("dormir"); say(`${pr.g}, ${S.name}!`); };
+    $id("start").focus();
+  }
+  let hiddenAt = 0;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    if (hiddenAt && Date.now() - hiddenAt > 20 * 60 * 1000 && current !== "dormir") go("splash");
+  });
+
+  function fim() {
+    const todayOk = S.log.filter(x => x.d === today() && x.ok).length, m = rand(MISSIONS);
+    app.innerHTML = `<section class="splash">
+      <div class="sun" aria-hidden="true">⌛</div>
+      <h1>Acabou o tempo de hoje, ${escapeHtml(S.name)}!</h1>
+      <p class="story-line" style="text-align:center">Você brincou muito bem${todayOk ? ` e acertou ${todayOk} desafios` : ""}. Amanhã tem mais!</p>
+      <div class="note" style="text-align:center"><b>Missão para agora, longe da tela:</b><br><span style="font-size:2em">${m.e}</span><br>${m.t}</div>
+      <div class="row">${S.limit.bedFree ? `<button class="btn" id="sleep">🌙 Hora de dormir</button>` : ""}<button class="btn soft" id="more">🔒 Adulto: liberar mais 10 minutos</button></div>
+    </section>`;
+    say(`Acabou o tempo de hoje, ${S.name}. Você brincou muito bem. Amanhã tem mais! Sua missão: ${m.t}`);
+    if (S.limit.bedFree) $id("sleep").onclick = () => go("dormir");
+    $id("more").onclick = () => gate(() => { const u = usage(); u.secs = Math.min(u.secs, (S.limit.mins + u.extra) * 60); u.extra += 10; usage().w5 = usage().w1 = false; save(); go("home"); });
+  }
+
+  // Senha de 4 números para a área dos pais. Vale por 10 minutos depois de digitada.
+  let parentUntil = 0;
+  function gate(next) {
+    if (Date.now() < parentUntil) return next();
+    if (cleanup) { cleanup(); cleanup = null; }
+    current = "gate";
+    const creating = !S.pin;
+    let typed = "";
+    app.innerHTML = topBar("Área dos pais", true) + `<section class="screen"><h2>🔒 Área dos pais</h2><div class="panel">
+      <p>${creating ? "Crie uma senha de 4 números. Ela protege os ajustes e o relatório." : "Digite a senha dos pais."}</p>
+      <div class="pin" id="pin" aria-live="polite">○ ○ ○ ○</div>
+      <div class="keypad">${[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map(k => k === "" ? "<span></span>" : `<button class="key" data-k="${k}">${k}</button>`).join("")}</div>
+      <p class="hint" id="pmsg"></p>
+      ${creating ? "" : `<button class="linkish" id="forgot">Esqueci a senha</button>`}
+    </div></section>`;
+    $id("hear").onclick = () => say("Área dos pais.");
+    const show = () => { $id("pin").textContent = [0,1,2,3].map(i => i < typed.length ? "●" : "○").join(" "); };
+    app.querySelectorAll(".key").forEach(b => b.onclick = () => {
+      if (b.dataset.k === "⌫") typed = typed.slice(0, -1); else if (typed.length < 4) typed += b.dataset.k;
+      show();
+      if (typed.length === 4) {
+        if (creating) { S.pin = typed; save(); parentUntil = Date.now() + 600000; next(); }
+        else if (typed === S.pin) { parentUntil = Date.now() + 600000; next(); }
+        else { typed = ""; show(); $id("pmsg").textContent = "Senha errada. Tente de novo."; }
+      }
+    });
+    // Recuperação: uma conta que um adulto resolve e uma criança pequena dificilmente resolve.
+    if (!creating) $id("forgot").onclick = () => {
+      const a = ri(12, 19), b = ri(6, 9);
+      $id("pmsg").innerHTML = `Para criar uma senha nova, responda: quanto é ${a} × ${b}? <input id="fx" inputmode="numeric" style="font:inherit;width:90px;min-height:44px"> <button class="btn soft" id="fok">OK</button>`;
+      $id("fok").onclick = () => { if (+$id("fx").value === a * b) { S.pin = ""; save(); gate(next); } else $id("pmsg").textContent = "Resposta errada."; };
+    };
+  }
+
+  // ---------- Desafio das estrelas (avaliação adaptativa) ----------
+  // Por habilidade: começa no nível atual, sobe quando acerta, desce quando erra.
+  // Para depois de 4 itens ou 2 erros. Resultado = maior nível em que acertou (0 a 4).
+  // Durante a avaliação a criança não vê certo ou errado, só um agradecimento.
+  const LOOKALIKE = [["pato", "bato", "gato"], ["mala", "bala", "sala"], ["vaca", "faca", "maca"], ["dado", "dedo", "nado"], ["rato", "mato", "gato"], ["lua", "rua", "sua"], ["bola", "cola", "mola"]];
+  const NUMSEQ = [[2, 4, 6, 8], [1, 3, 5, 7], [5, 10, 15, 20], [10, 8, 6, 4], [1, 2, 3, 4, 5], [3, 6, 9, 12]];
+  const ALPHA = "ABCDEFGHIJLMNOPRSTUV".split("");
+
+  function avaliar() {
+    app.innerHTML = topBar("Desafio das estrelas", true) + `<section class="screen t-sun"><h2>⭐ Desafio das estrelas</h2><div class="panel" id="panel" aria-live="polite"></div></section>`;
+    const p = $id("panel"); curTab = 0;
+    let speakNow = () => {}; $id("hear").onclick = () => speakNow();
+    let alive = true; cleanup = () => { alive = false; };
+    p.innerHTML = `<div class="moon" aria-hidden="true">⭐</div>
+      <p class="story-line" style="text-align:center">${S.name}, vamos fazer um desafio especial! Não tem certo nem errado. É só para eu aprender como te ajudar.</p>
+      <p class="note"><b>Adulto:</b> deixe a criança responder sozinha e sem pressa. São 5 partes curtas (letras, números, padrões, memória e leitura). Dá para parar a qualquer momento.</p>
+      <button class="btn" id="go">Começar</button>`;
+    speakNow = () => say(`${S.name}, vamos fazer um desafio especial! Não tem certo nem errado.`); speakNow();
+    $id("go").onclick = run;
+
+    // Mostra opções e devolve se a criança escolheu a certa.
+    const choose = (html, spoken, opts, answer, big) => new Promise(res => {
+      p.innerHTML = html + `<div class="choices">${opts.map(o => `<button class="choice ${big ? "" : "word"}" data-o="${escapeHtml(o)}">${escapeHtml(o)}</button>`).join("")}</div>`;
+      speakNow = () => say(spoken); speakNow();
+      p.querySelectorAll("[data-o]").forEach(b => b.onclick = () => res(b.dataset.o === String(answer)));
+    });
+    const items = {
+      matematica: d => {
+        if (d === 1) { const n = ri(2, 5), e = rand(THINGS); return choose(`<p class="hint">Quantos tem?</p><div class="sum-pics">${picRow(n, e)}</div>`, "Quantos tem?", numOpts(n, 2), n); }
+        const c = makeSum(d);
+        return choose(`<p class="hint">Quanto é?</p>${c.pics ? `<div class="sum-pics">${c.pics}</div>` : ""}<div class="bignum">${c.txt} = ?</div>`, `Quanto é ${c.say}?`, numOpts(c.ans, c.ans > 10 ? 4 : 2), c.ans);
+      },
+      letras: d => {
+        if (d === 1 || d === 2) { const t = rand(ALPHA), os = shuffle([t, ...shuffle(ALPHA.filter(x => x !== t)).slice(0, d === 1 ? 2 : 3)]).map(x => d === 2 ? x.toLowerCase() : x);
+          return choose(`<p class="hint">Escute e toque na letra.</p><button class="btn soft" id="rep">🔊 Ouvir de novo</button>`, `Toque na letra ${t}.`, os, d === 2 ? t.toLowerCase() : t, true); }
+        if (d === 3) { const w = rand(WORDS), os = shuffle([w.l, ...shuffle([...new Set(WORDS.map(x => x.l))].filter(x => x !== w.l)).slice(0, 3)]);
+          return choose(`<div class="emoji-xl" aria-hidden="true">${w.e}</div><p class="hint">Com que letra começa?</p>`, `Com que letra começa ${w.w}?`, os, w.l, true); }
+        const set = rand(LOOKALIKE);
+        return choose(`<p class="hint">Escute a palavra e toque nela.</p>`, `Toque na palavra ${set[0]}.`, shuffle(set), set[0]);
+      },
+      raciocinio: d => {
+        if (d === 4) { const sq = rand(NUMSEQ), ans = sq[sq.length - 1], shown = sq.slice(0, -1), step = sq[1] - sq[0];
+          const os = shuffle([ans, ans + step, ans - 1].filter((v, i, a) => a.indexOf(v) === i));
+          return choose(`<p class="hint">Qual número vem depois?</p><div class="pattern">${shown.map(x => `<span>${x}</span>`).join("")}<span class="q">?</span></div>`, "Qual número vem depois?", os, ans, true); }
+        const bases = { 1: PAT.filter(b => b.length === 2), 2: [["🍎", "🍌", "🍇"], ["🔴", "🟢", "🔵"]], 3: [["🐶", "🐶", "🐱"], ["🟥", "🟦", "🟦"], ["⭐", "⭐", "🌙"]] }[d];
+        const base = rand(bases), shown = Array.from({ length: base.length * 2 + 1 }, (_, k) => base[k % base.length]), ans = base[shown.length % base.length];
+        const os = shuffle([...new Set([ans, ...base, rand(["🐢", "🍓", "🌻"])])]).slice(0, 3); if (!os.includes(ans)) os[0] = ans;
+        return choose(`<p class="hint">Qual vem depois?</p><div class="pattern">${shown.map(x => `<span>${x}</span>`).join("")}<span class="q">?</span></div>`, "Olhe a fila. Qual vem depois?", shuffle(os), ans, true);
+      },
+      memoria: d => new Promise(res => {
+        const n = d + 1, seq = shuffle(EMO).slice(0, n), bank = shuffle([...seq, ...shuffle(EMO.filter(x => !seq.includes(x))).slice(0, 2)]);
+        p.innerHTML = `<p class="hint">Guarde estas figuras, nesta ordem.</p><div class="pattern">${seq.map(x => `<span>${x}</span>`).join("")}</div>`;
+        speakNow = () => say("Guarde estas figuras, nesta ordem."); speakNow();
+        setTimeout(() => {
+          if (!alive) return;
+          let k = 0, ok = true;
+          p.innerHTML = `<p class="hint">Agora toque nelas na mesma ordem.</p><div class="slots">${seq.map(() => `<div class="slot"></div>`).join("")}</div>
+            <div class="choices">${bank.map(x => `<button class="choice" data-o="${x}">${x}</button>`).join("")}</div>`;
+          speakNow = () => say("Agora toque nelas na mesma ordem."); speakNow();
+          const slots = p.querySelectorAll(".slot");
+          p.querySelectorAll("[data-o]").forEach(b => b.onclick = () => {
+            if (k >= n) return;
+            if (b.dataset.o !== seq[k]) ok = false;
+            slots[k].textContent = b.dataset.o; slots[k].classList.add("filled"); b.disabled = true; b.style.visibility = "hidden";
+            if (++k === n) setTimeout(() => res(ok), 300);
+          });
+        }, 1500 + n * 900);
+      }),
+      leitura: d => new Promise(res => {
+        const syl = rand(LEVELS[d].words).split("-"), word = syl.join("");
+        p.innerHTML = `<p class="hint">Leia esta palavra em voz alta.</p><div class="read-word">${word}</div><div id="act" class="answer"></div><div class="heard" id="heard"></div>`;
+        speakNow = () => say("Leia esta palavra em voz alta."); speakNow();
+        const act = $id("act");
+        const manual = why => {
+          act.innerHTML = (why ? noMicHtml(why) : "") + `<div class="row"><button class="btn" id="y">Leu certo</button><button class="btn soft" id="n">Não conseguiu</button></div>`;
+          $id("y").onclick = () => res(true); $id("n").onclick = () => res(false);
+        };
+        if (!SR || micBlocked) return manual("indisponivel");
+        let tries = 0;
+        act.innerHTML = `<button class="mic" id="mic" aria-label="Falar">🎤</button>`;
+        $id("mic").onclick = () => {
+          $id("mic").classList.add("on");
+          const stop = listen({ continuous: false, onText: t => { $id("heard").textContent = t; }, onFail: why => manual(why),
+            onDone: (t, alts) => { const m = $id("mic"); m && m.classList.remove("on");
+              if (!t && ++tries < 2) { $id("heard").textContent = "Não ouvi. Toque e fale de novo."; return; }
+              res(t ? judgeWord(word, alts).score >= 0.85 : false); } });
+          const prev = cleanup; cleanup = () => { stop(); prev && prev(); };
+        };
+      })
+    };
+
+    async function run() {
+      const r = {}, order = ["letras", "matematica", "raciocinio", "memoria", "leitura"];
+      for (const k of order) {
+        if (!alive) return;
+        p.innerHTML = `<div class="moon" aria-hidden="true">${SKILLS[k].e}</div><p class="story-line" style="text-align:center">Agora: ${SKILLS[k].n}</p>`;
+        speakNow = () => say(`Agora, ${SKILLS[k].n}.`); speakNow();
+        await new Promise(x => setTimeout(x, 1400));
+        let d = Math.min(4, Math.max(1, skLv(k))), best = 0, errs = 0;
+        for (let n = 0; n < 4 && errs < 2 && alive; n++) {
+          const ok = await items[k](d);
+          if (!alive) return;
+          if (ok) { best = Math.max(best, d); if (d === 4) { if (n >= 1) break; } else d++; }
+          else { errs++; d = Math.max(1, d - 1); }
+          p.innerHTML = `<div class="moon" aria-hidden="true">✨</div><p class="feedback">${rand(["Obrigado!", "Muito bem por tentar!", "Legal!", "Continue assim!"])}</p>`;
+          await new Promise(x => setTimeout(x, 800));
+        }
+        r[k] = best;
+      }
+      const prev = lastEval();
+      S.evals.push({ date: today(), age: S.age, r });
+      Object.keys(r).forEach(k => S.sk[k] = Math.max(1, r[k]));
+      star("avaliar"); save();
+      p.innerHTML = `<div class="moon" aria-hidden="true">🌟</div>
+        <p class="story-line" style="text-align:center">Parabéns, ${S.name}! Você completou o Desafio das estrelas!</p>
+        <div class="progress">${Object.keys(r).map(k => `<div><small>${SKILLS[k].e} ${SKILLS[k].n}</small><b>${"★".repeat(r[k])}${"☆".repeat(4 - r[k])}</b></div>`).join("")}</div>
+        <p class="hint">${prev ? "O relatório compara com o desafio anterior." : "Este é o primeiro desafio. Ele vira o ponto de partida do relatório."} As atividades já foram ajustadas para os novos níveis.</p>
+        <div class="row"><button class="btn" data-go="relatorio">Ver relatório</button><button class="btn soft" data-go="home">Voltar ao início</button></div>`;
+      say(`Parabéns, ${S.name}! Você completou o Desafio das estrelas!`);
+    }
+  }
+
+  // ---------- Relatório de evolução ----------
+  // Gráfico pequeno por habilidade (uma série cada, nível 0 a 4 em cada avaliação).
+  const spark = (k) => {
+    const pts = S.evals.slice(-8).map(e => ({ d: e.date, v: e.r[k] ?? 0 }));
+    if (!pts.length) return "";
+    const W = 220, H = 64, pad = 8, x = i => pts.length === 1 ? W / 2 : pad + i * (W - 2 * pad) / (pts.length - 1), y = v => H - pad - v * (H - 2 * pad) / 4;
+    const fmt = d => d.slice(8, 10) + "/" + d.slice(5, 7);
+    return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="Evolução de ${SKILLS[k].n}: ${pts.map(p => `${fmt(p.d)} nível ${p.v}`).join(", ")}">
+      ${[0, 2, 4].map(v => `<line x1="${pad}" x2="${W - pad}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`).join("")}
+      ${pts.length > 1 ? `<polyline fill="none" stroke="var(--sage)" stroke-width="2" stroke-linejoin="round" points="${pts.map((p, i) => `${x(i)},${y(p.v)}`).join(" ")}"/>` : ""}
+      ${pts.map((p, i) => `<circle cx="${x(i)}" cy="${y(p.v)}" r="${i === pts.length - 1 ? 5 : 3.5}" fill="${i === pts.length - 1 ? "var(--sage)" : "var(--surface)"}" stroke="var(--sage)" stroke-width="2"><title>${fmt(p.d)}: nível ${p.v} de 4</title></circle>`).join("")}
+    </svg>`;
+  };
+  function reportData() {
+    const last = lastEval(), prev = S.evals[S.evals.length - 2];
+    return Object.keys(SKILLS).map(k => {
+      const lv = last && last.r[k] != null ? last.r[k] : null, before = prev ? prev.r[k] : null, rw = recent(k, 7), acc = rw.n ? Math.round(100 * rw.ok / rw.n) : null;
+      return { k, sk: SKILLS[k], lv, delta: lv != null && before != null ? lv - before : null, rw, acc, play: skLv(k) };
+    });
+  }
+  function insights(rows) {
+    const out = [];
+    rows.forEach(r => {
+      if (r.delta > 0) out.push(`Evoluiu em ${r.sk.n.toLowerCase()}: agora ${low(r.sk.desc[r.lv])}.`);
+      else if (r.delta < 0) out.push(`Em ${r.sk.n.toLowerCase()} o resultado caiu um pouco. Pode ter sido cansaço ou um dia difícil; vale repetir com calma.`);
+      if (r.acc != null && r.rw.n >= 5 && r.acc >= 85 && r.play < 4) out.push(`Acertou ${r.acc}% em ${r.sk.n.toLowerCase()} nesta semana. Já dá para tentar um desafio maior.`);
+      if (r.acc != null && r.rw.n >= 5 && r.acc < 50) out.push(`${r.sk.n} pede mais calma: ${r.acc}% de acerto nesta semana. O plano do dia vai priorizar essa área com atividades mais fáceis.`);
+    });
+    const idle = rows.filter(r => !r.rw.n).map(r => r.sk.n.toLowerCase());
+    if (idle.length) out.push(`Sem prática nesta semana: ${idle.join(", ")}.`);
+    return out;
+  }
+  function relatorio() {
+    app.innerHTML = topBar("Relatório", true) + `<section class="screen t-sage"><h2>📈 Relatório de ${escapeHtml(S.name || "")}</h2><div class="panel" id="panel" style="text-align:left;justify-items:stretch"></div></section>`;
+    const p = $id("panel"), last = lastEval();
+    $id("hear").onclick = () => say("Relatório de evolução, para os pais.");
+    if (!last) {
+      p.innerHTML = `<p>Ainda não há avaliação. Faça o <b>Desafio das estrelas</b> para criar o ponto de partida. Leva uns 5 minutos.</p><button class="btn" data-go="avaliar" style="justify-self:start">Fazer o desafio</button>`;
+      return;
+    }
+    const rows = reportData().filter(r => r.lv != null), notes = insights(rows);
+    const days = Math.max(0, 14 - Math.floor((Date.now() - new Date(last.date).getTime()) / 864e5));
+    const fmt = d => d.split("-").reverse().join("/");
+    p.innerHTML = `
+      <p class="hint">${S.age} anos · ${S.evals.length} avaliaç${S.evals.length > 1 ? "ões" : "ão"} · última em ${fmt(last.date)} · ${days ? `próxima sugerida em ${days} dia${days > 1 ? "s" : ""}` : "já pode fazer uma nova"}</p>
+      <div class="skills">${rows.map(r => `<div class="skcard">
+          <div class="skhead"><b>${r.sk.e} ${r.sk.n}</b>${r.delta == null ? `<span class="delta">primeira</span>` : r.delta > 0 ? `<span class="delta up">↑ subiu ${r.delta}</span>` : r.delta < 0 ? `<span class="delta down">↓ caiu ${-r.delta}</span>` : `<span class="delta">= igual</span>`}</div>
+          <div class="sklevel"><span class="num">${r.lv}</span><span>de 4 · ${r.sk.desc[r.lv]}</span></div>
+          ${spark(r.k)}
+          <small class="hint">Nesta semana: ${r.rw.n ? `${r.rw.n} tentativas, ${r.acc}% de acerto` : "sem prática"}</small>
+          <small><b>Próximo desafio:</b> ${r.play >= 4 && r.lv >= 4 ? "manter e variar as atividades" : r.sk.desc[Math.min(4, Math.max(r.lv, 1) + (r.lv >= r.play ? 1 : 0))].toLowerCase()}</small>
+        </div>`).join("")}</div>
+      <div class="prose"><h3>O que observamos</h3>${notes.length ? `<ul>${notes.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>` : `<p>Tudo estável. Continue com o plano do dia.</p>`}</div>
+      <div class="row" style="justify-content:flex-start"><button class="btn" data-go="avaliar">Fazer o Desafio das estrelas</button><button class="btn soft" id="copy">Copiar relatório</button></div>
+      <p class="hint" id="copied"></p>
+      <p class="note">Este relatório mostra o desempenho nas atividades do app e não é um diagnóstico. Use para conversar com a escola, o fonoaudiólogo ou o psicopedagogo.</p>`;
+    $id("copy").onclick = () => {
+      const txt = `Relatório Passinho a Passo: ${S.name}, ${S.age} anos (${fmt(today())})\n` + rows.map(r => `- ${r.sk.n}: nível ${r.lv} de 4 (${r.sk.desc[r.lv]})${r.delta ? `, ${r.delta > 0 ? "subiu" : "caiu"} ${Math.abs(r.delta)} desde a avaliação anterior` : ""}; nesta semana ${r.rw.n ? `${r.rw.n} tentativas, ${r.acc}% de acerto` : "sem prática"}`).join("\n") + (notes.length ? "\nObservações:\n" + notes.map(n => "- " + n).join("\n") : "");
+      navigator.clipboard.writeText(txt).then(() => { $id("copied").textContent = "Relatório copiado. É só colar numa mensagem."; })
+        .catch(() => { $id("copied").innerHTML = `<textarea readonly style="width:100%;min-height:160px;font:inherit">${escapeHtml(txt)}</textarea>`; $id("copied").querySelector("textarea").select(); });
+    };
+  }
+
+  function shell(areaId, tabs, render) {
+    const a = AREAS.find(x => x.id === areaId);
+    app.innerHTML = topBar(a.n, a) + `<section class="screen ${a.tone}">
+      <h2>${a.e} ${a.n}</h2>
+      ${tabs.length > 1 ? `<div class="tabs" role="tablist">${tabs.map((t, i) => `<button class="tab" role="tab" data-tab="${i}" aria-selected="${i === 0}">${t}</button>`).join("")}</div>` : ""}
+      <div class="panel" id="panel" aria-live="polite"></div>
+    </section>`;
+    const panel = document.getElementById("panel");
+    let speakNow = () => say(a.intro);
+    const setSpeak = fn => { speakNow = fn; };
+    document.getElementById("hear").onclick = () => speakNow();
+    const show = i => {
+      if (cleanup) { cleanup(); cleanup = null; }
+      app.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab == i));
+      curTab = i; panel.innerHTML = ""; render(i, panel, setSpeak);
+    };
+    app.querySelectorAll(".tab").forEach(b => b.onclick = () => show(+b.dataset.tab));
+    show(Math.min(startTab, tabs.length - 1));
+  }
+
+  // ---------- Letras ----------
+  function letras() {
+    shell("letras", ["Primeira letra", "Montar palavra"], (tab, p, setSpeak) => tab === 0 ? letraInicial(p, setSpeak) : montar(p, setSpeak));
+  }
+  function letraInicial(p, setSpeak) {
+    const target = rand(WORDS);
+    const others = shuffle(WORDS.filter(w => w.l !== target.l)).slice(0, LVs("letras").opts - 1);
+    const opts = shuffle([target, ...others]);
+    const instr = `Esta é a letra ${target.l}. Qual figura começa com ${target.l}?`;
+    p.innerHTML = `<p class="hint">Qual figura começa com esta letra?</p>
+      <div class="big-letter" aria-label="Letra ${target.l}">${target.l}<span style="font-size:.5em;color:var(--muted)"> ${target.l.toLowerCase()}</span></div>
+      <div class="choices">${opts.map(o => `<button class="choice" data-w="${o.w}" aria-label="${o.w}">${o.e}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">Outra letra</button></div>`;
+    setSpeak(() => say(instr)); say(instr);
+    let done = false;
+    p.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      if (done) return;
+      const fb = p.querySelector("#fb");
+      if (b.dataset.w === target.w) {
+        done = true; b.classList.add("right"); const m = rand(praise);
+        fb.textContent = `${m} ${target.l} de ${target.w}.`; say(`${m} ${target.l} de ${target.w}!`); star("letras"); track(true, p, "letras");
+      } else {
+        b.classList.remove("try"); void b.offsetWidth; b.classList.add("try");
+        track(false, p, "letras"); fb.textContent = rand(retry); say(`Isso é ${b.dataset.w}. ${b.dataset.w} começa com ${b.dataset.w[0].toUpperCase()}. Tente de novo.`);
+      }
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; letraInicial(p, setSpeak); };
+  }
+  function montar(p, setSpeak) {
+    const target = rand(WORDS.filter(w => w.s && w.s.length <= LVs("letras").maxSyl));
+    const parts = target.s;
+    let pos = 0;
+    const instr = `Vamos montar a palavra ${target.w}. ${parts.join(", ")}. Toque nas sílabas na ordem.`;
+    p.innerHTML = `<div class="emoji-xl" aria-hidden="true">${target.e}</div>
+      <p class="hint">Toque nas sílabas na ordem para formar <b>${target.w}</b>.</p>
+      <div class="slots">${parts.map(() => `<div class="slot"></div>`).join("")}</div>
+      <div class="choices">${shuffle([...parts.map((s, i) => ({ s, i })), ...(LVs("letras").distract ? [{ s: rand(["MI", "TU", "RE", "ZO", "NA"].filter(x => !parts.includes(x))), i: -1 }] : [])]).map(o => `<button class="choice word" data-i="${o.i}">${o.s}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">Outra palavra</button></div>`;
+    setSpeak(() => say(instr)); say(instr);
+    const slots = p.querySelectorAll(".slot");
+    p.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      const fb = p.querySelector("#fb");
+      if (+b.dataset.i === pos) {
+        slots[pos].textContent = b.textContent; slots[pos].classList.add("filled");
+        b.disabled = true; b.style.visibility = "hidden"; say(b.textContent.toLowerCase(), 0.7); pos++;
+        if (pos === parts.length) { const m = rand(praise); fb.textContent = `${m} ${target.w.toUpperCase()}!`; setTimeout(() => say(`${m} ${target.w}!`), 700); star("letras"); track(true, p, "letras"); }
+      } else {
+        b.classList.remove("try"); void b.offsetWidth; b.classList.add("try");
+        fb.textContent = `Qual vem agora? Escute: ${parts[pos]}.`; say(`Escute: ${parts[pos].toLowerCase()}`, 0.7);
+      }
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; montar(p, setSpeak); };
+  }
+
+  // ---------- Leitura em voz alta ----------
+  function leitura() {
+    shell("leitura", TAB_NAMES.leitura, (tab, p, setSpeak) => tab === 0 ? lerPalavras(p, setSpeak) : lerTexto(p, setSpeak));
+  }
+  const noteWord = (w, ok) => { const k = w.replace(/-/g, ""); const r = S.words[k] || { ok: 0, miss: 0 }; ok ? r.ok++ : r.miss++; S.words[k] = r; save(); };
+  let lastWord = "";
+  function lerPalavras(p, setSpeak) {
+    const pick = rand(LVs("leitura").words.filter(w => w !== lastWord)); lastWord = pick;
+    const syl = pick.split("-"), word = syl.join("");
+    let tries = 0, stop = null;
+    p.innerHTML = `<p class="hint">Leia a palavra em voz alta. Toque no microfone e fale.</p>
+      <div class="read-word" id="rw">${syl.map(x => `<span class="sy">${x}</span>`).join("")}</div>
+      <div id="act" class="row"></div>
+      <div class="heard" id="heard"></div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="help">🔊 Preciso de ajuda</button><button class="btn soft" id="next">Outra palavra</button></div>`;
+    const act = p.querySelector("#act"), fb = p.querySelector("#fb"), heardEl = p.querySelector("#heard"), rw = p.querySelector("#rw");
+    cleanup = () => stop && stop();
+    const helpSyl = () => { rw.classList.add("split"); say(syl.join("... ") + "... " + word, 0.6); };
+    const win = () => { const m = rand(praise); fb.textContent = `${m} Você leu “${word}”.`; say(`${m} ${word}!`); star("leitura"); noteWord(pick, true); track(true, p, "leitura"); act.innerHTML = ""; };
+    const miss = () => {
+      tries++; noteWord(pick, false);
+      if (tries >= 2) { fb.textContent = `Vamos ler juntos: ${syl.join("-")}… ${word}!`; rw.classList.add("split"); say(`Vamos ler juntos. ${syl.join("... ")}. ${word}!`, 0.6); track(false, p, "leitura"); }
+      else { fb.textContent = "Quase! Vamos ler em pedacinhos e tentar de novo."; setTimeout(helpSyl, 300); }
+    };
+    const manual = why => {
+      act.innerHTML = noMicHtml(why) + `<div class="row"><button class="btn" id="okb">Leu certinho</button><button class="btn soft" id="hb">Precisou de ajuda</button></div>`;
+      act.querySelector("#okb").onclick = win; act.querySelector("#hb").onclick = miss;
+    };
+    const micUi = () => {
+      act.innerHTML = `<button class="mic" id="mic" aria-label="Falar">🎤</button>`;
+      const mic = act.querySelector("#mic");
+      mic.onclick = () => {
+        if (mic.classList.contains("on")) { stop && stop(); return; }
+        mic.classList.add("on"); heardEl.textContent = "Estou ouvindo…"; fb.textContent = "";
+        stop = listen({ continuous: false,
+          onText: t => { heardEl.textContent = t ? `Ouvi: “${t}”` : "Estou ouvindo…"; },
+          onFail: why => manual(why),
+          onDone: (t, alts) => {
+            mic.classList.remove("on");
+            if (!t) { heardEl.textContent = ""; fb.textContent = "Não consegui ouvir. Toque no microfone e fale mais pertinho."; return; }
+            const r = judgeWord(word, alts);
+            heardEl.textContent = `Ouvi: “${r.heard}”`;
+            r.score >= 0.85 ? win() : miss();
+          } });
+      };
+    };
+    (SR && !micBlocked) ? micUi() : manual("indisponivel");
+    p.querySelector("#help").onclick = helpSyl;
+    p.querySelector("#next").onclick = () => { stop && stop(); p.innerHTML = ""; lerPalavras(p, setSpeak); };
+    setSpeak(() => say("Leia a palavra em voz alta. Toque no microfone e fale."));
+    say("Leia a palavra em voz alta.");
+  }
+  function lerTexto(p, setSpeak) {
+    const text = rand(LVs("leitura").texts);
+    const words = text.split(/\s+/);
+    let stop = null;
+    p.innerHTML = `<p class="hint">Primeiro escute. Depois é a sua vez de ler. Toque numa palavra para ouvir só ela.</p>
+      <p class="story" id="story">${words.map((w, i) => `<button class="w" data-i="${i}">${w}</button>`).join(" ")}</p>
+      <div class="row"><button class="btn soft" id="listenFirst">🔊 Ouvir primeiro</button></div>
+      <div id="act" class="row"></div>
+      <div class="heard" id="heard"></div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">Outro texto</button></div>`;
+    const spans = [...p.querySelectorAll(".w")], act = p.querySelector("#act"), fb = p.querySelector("#fb"), heardEl = p.querySelector("#heard");
+    const clear = () => spans.forEach(s => s.classList.remove("now", "ok", "miss"));
+    cleanup = () => stop && stop();
+    spans.forEach(s => s.onclick = () => { s.classList.remove("miss"); say(s.textContent, 0.6); });
+    // Lê o texto marcando a palavra da vez (quando o navegador informa a posição).
+    p.querySelector("#listenFirst").onclick = () => {
+      if (!S.voice || !("speechSynthesis" in window)) return;
+      clear(); speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text); u.lang = "pt-BR"; if (ptVoice) u.voice = ptVoice; u.rate = Math.min(S.rate, 0.8);
+      const starts = []; let pos = 0; words.forEach(w => { pos = text.indexOf(w, pos); starts.push(pos); pos += w.length; });
+      u.onboundary = e => { let i = 0; starts.forEach((x, k) => { if (x <= e.charIndex) i = k; }); spans.forEach((s, k) => s.classList.toggle("now", k === i)); };
+      u.onend = () => spans.forEach(s => s.classList.remove("now"));
+      speechSynthesis.speak(u);
+    };
+    const finish = ok => {
+      const n = ok.filter(Boolean).length, ratio = n / words.length;
+      spans.forEach((s, i) => { s.classList.remove("now"); s.classList.toggle("ok", ok[i]); s.classList.toggle("miss", !ok[i]); });
+      words.forEach((w, i) => { if (!ok[i] && norm(w).length > 2) noteWord(norm(w), false); });
+      if (ratio >= 0.8) { const m = rand(praise); fb.textContent = `${m} Você leu ${n} de ${words.length} palavras.`; say(`${m} Que leitura bonita!`); star("leitura"); track(true, p, "leitura"); }
+      else { fb.textContent = `Você leu ${n} de ${words.length} palavras! Toque nas amarelas para ouvir e leia de novo.`; say("Muito bem por tentar! Toque nas palavras amarelas para ouvir, e leia de novo."); track(ratio >= 0.5, p, "leitura"); }
+    };
+    const manual = why => {
+      act.innerHTML = noMicHtml(why) + `<p class="hint" style="text-align:left">Adulto: toque nas palavras em que a criança travou. Elas ficam amarelas.</p><div class="row"><button class="btn" id="okb">Terminou de ler</button></div>`;
+      spans.forEach(s => s.onclick = () => { s.classList.toggle("miss"); if (s.classList.contains("miss")) say(s.textContent, 0.6); });
+      act.querySelector("#okb").onclick = () => finish(spans.map(s => !s.classList.contains("miss")));
+    };
+    const micUi = () => {
+      act.innerHTML = `<button class="btn" id="mic">🎤 Agora eu leio</button>`;
+      const mic = act.querySelector("#mic");
+      mic.onclick = () => {
+        if (stop && mic.dataset.on) { stop(); return; }
+        clear(); fb.textContent = ""; heardEl.textContent = "Estou ouvindo. Pode ler!";
+        mic.dataset.on = "1"; mic.textContent = "✋ Terminei";
+        let last = "";
+        stop = listen({ continuous: true,
+          onText: t => { last = t; const ok = alignText(words, t); spans.forEach((s, i) => s.classList.toggle("ok", ok[i])); },
+          onFail: why => manual(why),
+          onDone: t => { delete mic.dataset.on; mic.textContent = "🎤 Ler de novo"; stop = null; heardEl.textContent = "";
+            const all = t || last; if (!all) { fb.textContent = "Não consegui ouvir. Fale mais pertinho do aparelho."; return; } finish(alignText(words, all)); } });
+      };
+    };
+    (SR && !micBlocked) ? micUi() : manual("indisponivel");
+    p.querySelector("#next").onclick = () => { stop && stop(); if ("speechSynthesis" in window) speechSynthesis.cancel(); p.innerHTML = ""; lerTexto(p, setSpeak); };
+    setSpeak(() => say("Primeiro escute. Depois é a sua vez de ler."));
+  }
+
+  // ---------- Hora de dormir ----------
+  // Histórias em que a criança é a personagem. Cada resposta dela entra no texto.
+  // {nome} e {idade} vêm dos ajustes; as outras chaves vêm das respostas (guardadas em S.bed.facts).
+  const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+  const low = s => s ? s[0].toLowerCase() + s.slice(1) : s;
+  const clean = s => String(s || "").replace(/[<>{}]/g, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  const STORIES = [
+    { id: "estrela", e: "⭐", n: "A estrelinha da escola", d: "Fala da sua escola e de um amigo",
+      steps: [
+        { t: "Era uma vez uma criança muito especial chamada {nome}. {nome} tinha {idade} anos e um coração enorme." },
+        { q: "{nome}, qual é o nome da sua escola?", k: "escola", chips: ["Ainda não vou à escola"],
+          map: (v, A) => { A.naEscola = /ainda n|nao vou|não vou/i.test(v) ? "no parquinho perto de casa" : "na escola " + v.replace(/^(escola|col[eé]gio|creche)\s+/i, ""); } },
+        { t: "Numa manhã de sol, {nome} chegou {naEscola}. E, bem no meio do pátio, uma coisa brilhava baixinho…" },
+        { t: "Era uma estrelinha! Ela tinha caído do céu durante a noite e estava perdida." },
+        { q: "Quem estava junto com você? Fala o nome de um amigo ou de uma amiga.", k: "amigo", chips: ["A professora", "Ninguém, só eu"],
+          map: (v, A) => { A.comAmigo = /ningu[eé]m|s[oó] eu/i.test(v) ? "" : " e " + v; } },
+        { t: "{nome}{comAmigo} pegaram a estrelinha com muito cuidado, bem devagar, para ela não se assustar.", alt: { when: A => !A.comAmigo, t: "{nome} pegou a estrelinha com muito cuidado, bem devagar, para ela não se assustar." } },
+        { q: "De que cor era a estrelinha?", k: "cor", chips: ["Amarela", "Azul", "Rosa", "Prateada"], map: (v, A) => { A.cor = low(v).replace(/o$/, "a"); } },
+        { t: "A estrelinha {cor} sussurrou: — Obrigada! Eu preciso voltar para o céu antes de a noite chegar." },
+        { t: "{nome} pensou, pensou… e teve uma ideia.", older: true },
+        { q: "Como a gente pode ajudar a estrelinha a voltar para o céu?", k: "ideia", chips: ["Com um balão", "Pedindo ajuda para a lua", "Com uma escada bem alta", "Com um passarinho"], map: (v, A) => { A.ideia = low(v); } },
+        { t: "Que ideia brilhante! E assim, {ideia}, a estrelinha {cor} foi subindo, subindo, até o céu escuro." },
+        { t: "Lá de cima, ela piscou três vezes para {nome}. Pisca, pisca, pisca. Era o jeito dela de dizer obrigada." },
+        { t: "As outras estrelas fizeram uma roda em volta dela, felizes por ela ter voltado para casa.", older: true },
+        { t: "E toda noite, quando {nome} olha pela janela, a estrelinha {cor} está lá, cuidando do sono de {nome}." }
+      ] },
+    { id: "barco", e: "☁️", n: "O barco de nuvem", d: "Um passeio com o seu bicho favorito",
+      steps: [
+        { t: "Numa noite tranquila, {nome} já estava na cama, com o cobertor quentinho." },
+        { t: "Pela janela entrou, devagarinho, um barquinho feito de nuvem, macio como travesseiro." },
+        { q: "Dentro do barco tinha um bichinho esperando por você. Que bicho era?", k: "animal", chips: ["Um cachorro", "Um gato", "Um coelho", "Um dinossauro"],
+          map: (v, A) => { A.bicho = low(v).replace(/^(um|uma|o|a)\s+/i, ""); } },
+        { t: "O amigo {bicho} sorriu e falou bem baixinho: — Vamos passear, {nome}?" },
+        { q: "Para onde o barco de nuvem levou vocês?", k: "lugar", chips: ["Para a praia", "Para a floresta", "Para a lua", "Para a casa da vovó"],
+          map: (v, A) => { v = low(v); A.lugar = /^(para|pra|até)\b/.test(v) ? v : "para " + v; } },
+        { t: "O barco flutuou por cima dos telhados, das árvores e das luzes da cidade, e foi {lugar}." },
+        { t: "O vento era fresquinho, e as estrelas pareciam pipoca brilhando no céu.", older: true },
+        { q: "Lá, vocês fizeram um piquenique. O que tinha para comer?", k: "comida", chips: ["Pão de queijo", "Frutas", "Bolo de chocolate", "Pipoca"], map: (v, A) => { A.comida = low(v); } },
+        { t: "{nome} e o amigo {bicho} comeram {comida} devagarinho, olhando o céu." },
+        { t: "Depois, o barco de nuvem começou a balançar, bem de leve, como uma rede." },
+        { t: "O amigo {bicho} bocejou. {nome} bocejou também. Uaaaah…" },
+        { t: "Contaram juntos as estrelas: uma, duas, três… e os olhos foram ficando pesados.", older: true },
+        { t: "Devagar, o barco trouxe {nome} de volta para a cama quentinha. O amigo {bicho} disse: — Amanhã tem mais passeio. Boa noite." }
+      ] },
+    { id: "jardim", e: "🌷", n: "O jardim do coração", d: "Lembrar as coisas boas do dia",
+      steps: [
+        { t: "Todo mundo tem um jardim secreto dentro do coração. O jardim de {nome} é muito bonito." },
+        { t: "Nesse jardim, cada coisa boa do dia vira uma flor." },
+        { q: "{nome}, o que foi bom no seu dia hoje?", k: "bom", chips: ["Brincar", "Ir à escola", "Comer algo gostoso", "Ficar com a família"], map: (v, A) => { A.bom = low(v); } },
+        { t: "Olha só! Uma flor nova nasceu no jardim: a flor de {bom}. Ela tem um cheirinho gostoso." },
+        { q: "Quem você ama muito?", k: "amor", chips: ["Mamãe", "Papai", "Vovó", "Vovô"] },
+        { t: "Ao lado da flor nasceu uma árvore forte: a árvore de {amor}. Ela dá sombra e abraço." },
+        { t: "Passarinhos fizeram ninho nos galhos e cantaram uma música bem baixinha.", older: true },
+        { q: "Com o que você quer sonhar hoje?", k: "sonho", chips: ["Com o mar", "Com dinossauros", "Com voar", "Com os amigos"],
+          map: (v, A) => { v = low(v); A.sonho = /^com\b/.test(v) ? v : "com " + v; } },
+        { t: "Então o jardim guardou um desejo especial: hoje, {nome} vai sonhar {sonho}." },
+        { t: "Agora o jardim está cheio de flores, e {nome} pode descansar. O sol foi dormir, a lua acendeu, e tudo ficou calminho." }
+      ] }
+  ];
+  // Biblioteca de histórias (funciona sem internet). Formato: [id, emoji, título, resumo, linhas].
+  // Linha de texto: "..." · linha só para 7 anos ou mais: "+ ..." · pergunta: ["?", chave, pergunta, [opções]].
+  // Chaves de nome próprio mantêm a maiúscula; as outras entram em minúscula e sem artigo no começo.
+  const PROPER = ["amigo", "pessoa", "nomeBicho", "musica", "escola", "nomeCastelo", "torcida", "ajuda", "ideia", "pergunta"], STRIP = ["animal", "brincadeira", "vagao"];
+  const LIB = [
+    ["dino", "🦕", "O dinossauro com medo do escuro", "Ajude um dinossauro a dormir", [
+      "{nome} estava no quintal quando ouviu um barulhinho atrás da árvore.",
+      "Era um dinossauro pequeno, verdinho e muito educado. — Oi, {nome}! — disse ele. — Eu tenho medo do escuro.",
+      ["?", "nomeBicho", "Que nome vamos dar para o dinossauro?", ["Dino", "Rex", "Pipoca", "Bolinha"]],
+      "{nomeBicho} sorriu. Ele gostou muito do nome novo.",
+      "{nome} explicou: — O escuro é só a noite descansando. As coisas continuam no mesmo lugar.",
+      ["?", "luz", "O que pode deixar a noite mais tranquila para o {nomeBicho}?", ["Uma lanterna", "Um abraço", "Uma música", "As estrelas"]],
+      "Com {luz}, {nomeBicho} foi ficando calminho, calminho.",
+      "+ Ele respirou fundo três vezes, igualzinho {nome} ensinou: cheira a flor, sopra a vela.",
+      "{nomeBicho} deitou a cabeçona na grama e fechou os olhos. — Obrigado, {nome}. Agora eu sei que o escuro é amigo.",
+      "E {nome} também foi deitar, sabendo que o dia seguinte ia chegar bem bonito." ]],
+    ["foguete", "🚀", "Um foguete até a lua", "Uma viagem pelo espaço", [
+      "Era uma vez um foguete de papelão que ficava no quarto de {nome}.",
+      "Numa noite, o foguete piscou as luzes e disse: — Vamos visitar a lua?",
+      ["?", "cor", "De que cor era o foguete?", ["Azul", "Vermelho", "Prateado", "Rosa"]],
+      "{nome} entrou no foguete da cor {cor}, apertou o cinto e contou: três, dois, um… decolar!",
+      "O foguete subiu devagar, passou pelas nuvens e chegou ao céu cheio de estrelas.",
+      ["?", "levar", "O que você levou na mochila para a viagem?", ["Um lanche", "Meu bichinho de pelúcia", "Uma lanterna", "Um livro"]],
+      "Na lua, {nome} abriu a mochila e tirou {levar}. A lua achou muito engraçado.",
+      "+ Lá de cima, a Terra parecia uma bola azul, pequenininha, girando bem devagar.",
+      "{nome} deu pulinhos bem altos, porque na lua tudo fica levinho.",
+      "Depois o foguete voltou, pousou no quarto sem fazer barulho, e {nome} dormiu sonhando com a lua." ]],
+    ["mar", "🐠", "O segredo do fundo do mar", "Nadar com os peixinhos", [
+      "{nome} ganhou uma concha mágica. Quando colocava no ouvido, escutava o mar.",
+      "De repente, a concha brilhou e {nome} estava no fundo do mar, respirando como um peixinho.",
+      ["?", "animal", "Qual bicho do mar veio dar oi?", ["Um peixe-palhaço", "Uma tartaruga", "Um golfinho", "Um polvo"]],
+      "O amigo {animal} nadou em volta de {nome} fazendo bolhinhas.",
+      "— Venha ver o meu tesouro — disse ele.",
+      "+ Eles passaram por algas que dançavam devagar e por pedrinhas que brilhavam como estrelas.",
+      ["?", "tesouro", "O que tinha dentro do baú do tesouro?", ["Pérolas", "Conchas coloridas", "Um mapa", "Um bolo de areia"]],
+      "Dentro do baú tinha {tesouro}! {nome} e o amigo {animal} riram juntos.",
+      "Quando as águas ficaram azul-escuro, o amigo {animal} disse: — Hora de voltar. O mar também dorme.",
+      "A concha brilhou de novo e {nome} acordou na cama, ouvindo o mar baixinho." ]],
+    ["tartaruga", "🐢", "A tartaruga que chegou no tempo dela", "Cada um tem o seu tempo", [
+      "Na floresta, os bichos fizeram uma corrida até a árvore grande.",
+      "A tartaruga Tita era a mais devagar. Alguns bichos riram dela.",
+      "{nome} estava passando por ali e disse: — Cada um tem o seu tempo. Vai, Tita!",
+      ["?", "torcida", "O que você gritou para animar a Tita?", ["Você consegue!", "Vai, Tita!", "Estou com você!", "Sem pressa!"]],
+      "— {torcida} — gritou {nome}. A Tita sorriu e continuou, passo a passo.",
+      "+ No caminho, ela viu flores, sentiu o vento e ajudou um besouro a se virar.",
+      "A Tita chegou por último, mas chegou feliz, e contou tudo o que viu no caminho.",
+      ["?", "premio", "Que prêmio a Tita merece?", ["Uma medalha", "Um abraço", "Uma folha de alface", "Uma festa"]],
+      "Os bichos deram para a Tita {premio}, porque ela nunca desistiu.",
+      "E {nome} dormiu pensando: devagar também se chega lá." ]],
+    ["onibus", "🚌", "O ônibus da escola que voava", "Um passeio pelo céu da cidade", [
+      "Era manhã, e o ônibus amarelo parou na porta de {nome}.",
+      ["?", "escola", "Para qual escola o ônibus ia?", ["Ainda não vou à escola"]],
+      "Mas, no meio do caminho para {escola}, o ônibus abriu asas e começou a voar!",
+      ["?", "amigo", "Quem estava sentado do seu lado no ônibus? Fala o nome.", ["Ninguém"]],
+      "{nome} e {amigo} olharam pela janela: as casas pareciam de brinquedo.",
+      "+ Eles passaram por cima do parque, da padaria e de um rio que brilhava.",
+      "O ônibus deu uma volta bem devagar em volta de uma nuvem fofinha.",
+      "Depois pousou na escola sem ninguém perceber. Só {nome} sabia o segredo.",
+      "E toda vez que {nome} vê um ônibus amarelo, sorri baixinho." ]],
+    ["padaria", "🥐", "A padaria dos pães mágicos", "Fazer pão com o padeiro", [
+      "Na rua de {nome} tinha uma padaria com cheirinho de pão quentinho.",
+      "O padeiro, seu Juca, chamou: — {nome}, quer me ajudar a fazer um pão mágico?",
+      ["?", "ingrediente", "O que vamos colocar na massa?", ["Chocolate", "Queijo", "Banana", "Mel"]],
+      "{nome} misturou a farinha, a água e {ingrediente}. A massa ficou macia como travesseiro.",
+      "Seu Juca disse: — Agora a massa precisa descansar. Pão bom não tem pressa.",
+      "+ Enquanto esperavam, eles contaram até cem e cantaram uma música baixinho.",
+      ["?", "formato", "Que formato vamos dar para o pão?", ["De estrela", "De coração", "De bichinho", "Redondo"]],
+      "O pão saiu do forno {formato}, douradinho e quentinho.",
+      "{nome} levou o pão para casa e dividiu com a família. Todo mundo dormiu feliz e de barriga cheia." ]],
+    ["borboleta", "🦋", "A lagarta paciente", "Esperar também é crescer", [
+      "No jardim, {nome} encontrou uma lagarta comendo uma folha.",
+      "— Um dia eu vou voar — disse a lagarta. — Mas antes eu preciso esperar.",
+      "Ela fez um casulo e ficou lá dentro, quietinha, por muitos dias.",
+      ["?", "nomeBicho", "Que nome vamos dar para a lagarta?", ["Lili", "Lulu", "Flor", "Bia"]],
+      "Todo dia {nome} passava e dizia: — Bom dia, {nomeBicho}. Estou esperando você.",
+      "+ Às vezes parecia que nada acontecia. Mas lá dentro, a {nomeBicho} estava mudando.",
+      "Até que, numa manhã, o casulo abriu…",
+      ["?", "cor", "De que cor eram as asas da borboleta?", ["Azul", "Amarelo", "Laranja", "Todas as cores"]],
+      "Saiu uma borboleta de asas da cor {cor}! Ela voou em volta de {nome} três vezes.",
+      "— Obrigada por esperar comigo — disse a {nomeBicho}. E {nome} aprendeu que crescer leva tempo." ]],
+    ["pinguim", "🐧", "O pinguim que queria calor", "Uma visita ao gelo", [
+      "Lá longe, onde tudo é gelo, morava um pinguim chamado Pingo.",
+      "Pingo vivia com frio no pé. Ele escreveu uma carta para {nome}.",
+      ["?", "presente", "O que você mandou para esquentar o Pingo?", ["Meias", "Um cachecol", "Um cobertor", "Um abraço"]],
+      "{nome} mandou {presente} pelo correio dos passarinhos.",
+      "Quando chegou, Pingo ficou tão quentinho que deslizou de barriga no gelo, de alegria.",
+      "+ Os outros pinguins vieram ver, e Pingo dividiu o presente com todos.",
+      ["?", "brincadeira", "Do que os pinguins brincaram depois?", ["Escorregar", "Esconde-esconde", "Pega-pega", "Dançar"]],
+      "Eles brincaram de {brincadeira} até a lua aparecer.",
+      "Pingo mandou uma carta de volta: — Obrigado, {nome}! Boa noite, quentinho como eu." ]],
+    ["arcoiris", "🌈", "O arco-íris que perdeu uma cor", "Ajude o arco-íris", [
+      "Depois da chuva, o arco-íris apareceu no céu, mas estava triste.",
+      "— Eu perdi uma das minhas cores — disse ele para {nome}.",
+      ["?", "cor", "Qual cor sumiu do arco-íris?", ["Azul", "Amarelo", "Verde", "Vermelho"]],
+      "{nome} procurou a cor {cor} pela casa inteira.",
+      ["?", "achado", "Onde você achou a cor perdida?", ["Embaixo da cama", "No jardim", "Na caixa de lápis", "Dentro de um sorvete"]],
+      "Achou! A cor estava {achado}, escondidinha.",
+      "+ {nome} segurou a cor com cuidado e soprou bem alto para o céu.",
+      "A cor voou de volta e o arco-íris ficou completo e brilhante.",
+      "— Obrigado, {nome}! — disse o arco-íris. E foi dormir atrás das nuvens." ]],
+    ["festa", "🎂", "O aniversário do urso Bolota", "Preparar uma festa surpresa", [
+      "Hoje é aniversário do urso Bolota, e {nome} quer fazer uma surpresa.",
+      ["?", "bolo", "De que sabor vai ser o bolo?", ["Chocolate", "Morango", "Cenoura", "Mel"]],
+      "{nome} preparou um bolo de {bolo}, bem fofinho.",
+      ["?", "convidado", "Quem você convidou para a festa?", ["O coelho", "A girafa", "Os passarinhos", "A família toda"]],
+      "Logo chegou a turma toda: {convidado}. E todo mundo se escondeu atrás do sofá.",
+      "Quando Bolota entrou, todos gritaram: — Surpresa!",
+      "+ Bolota ficou com os olhos cheios de alegria e deu um abraço de urso em cada um.",
+      ["?", "musica", "Qual música vocês cantaram?", ["Parabéns pra você", "Brilha, brilha, estrelinha", "Ciranda, cirandinha"]],
+      "Todos cantaram {musica} e Bolota soprou as velinhas.",
+      "Depois da festa, Bolota bocejou: — Foi o melhor aniversário! E {nome} também foi descansar." ]],
+    ["biblioteca", "📚", "A biblioteca dos livros falantes", "Livros que contam histórias", [
+      "Na biblioteca da cidade, os livros conversam quando ninguém está olhando.",
+      "Mas, numa tarde, eles falaram com {nome}: — Psiu! Escolha um de nós!",
+      ["?", "tema", "Sobre o que era o livro que você escolheu?", ["Dinossauros", "Princesas", "Planetas", "Bichos"]],
+      "O livro sobre {tema} abriu sozinho e {nome} entrou dentro da história.",
+      "+ Lá dentro, cada página virava um lugar novo para explorar.",
+      ["?", "personagem", "Quem você encontrou dentro do livro?", ["Um dragão gentil", "Uma fada", "Um astronauta", "Um gatinho"]],
+      "{nome} e {personagem} viraram as páginas juntos, rindo das figuras.",
+      "Na última página estava escrito: Fim. E {nome} voltou para a biblioteca.",
+      "O livro sussurrou: — Volte amanhã. Ler é viajar sem sair do lugar." ]],
+    ["sementinha", "🌱", "A sementinha de {nome}", "Plantar e cuidar", [
+      "{nome} ganhou uma sementinha bem pequenininha.",
+      ["?", "planta", "O que você acha que vai nascer da sementinha?", ["Uma flor", "Uma árvore", "Um pé de feijão", "Um girassol"]],
+      "{nome} plantou a sementinha num vasinho e esperou nascer {planta}.",
+      "Todo dia, {nome} colocava um pouquinho de água e deixava a sementinha tomar sol.",
+      "+ No começo, nada aparecia. Mas embaixo da terra, a raiz já estava crescendo.",
+      "Um dia, apareceu um brotinho verde! Depois uma folha. Depois outra.",
+      ["?", "nomeBicho", "Que nome vamos dar para a plantinha?", ["Verdinha", "Florzinha", "Sol", "Esperança"]],
+      "A {nomeBicho} cresceu forte, porque {nome} cuidou dela com carinho e paciência.",
+      "E toda noite, {nome} dizia: — Boa noite, {nomeBicho}. Amanhã a gente cresce mais um pouquinho." ]],
+    ["robo", "🤖", "O robô que aprendeu a abraçar", "Ensinar um robô a ter carinho", [
+      "Num dia de chuva, um robozinho bateu na porta de {nome}.",
+      "— Bip, bop. Eu sei fazer contas, mas não sei fazer carinho — disse ele.",
+      ["?", "nomeBicho", "Que nome vamos dar para o robô?", ["Bip", "Zeca", "Parafuso", "Robi"]],
+      "{nome} disse: — Oi, {nomeBicho}! Eu te ensino.",
+      ["?", "carinho", "O que você ensinou primeiro ao robô?", ["A dar um abraço", "A dizer obrigado", "A sorrir", "A dividir o lanche"]],
+      "{nome} ensinou {carinho}. O robô tentou uma vez, duas vezes, três vezes… e conseguiu!",
+      "+ As luzinhas do robô ficaram cor-de-rosa, que é a cor da alegria dos robôs.",
+      "— Bip, bop. Agora eu sei — disse {nomeBicho}. — Carinho não é conta. É sentir.",
+      "Os dois desligaram as luzes juntos, e {nomeBicho} ficou de guarda até {nome} dormir." ]],
+    ["coruja", "🦉", "A coruja professora", "Uma aula no meio da floresta", [
+      "Na floresta, a coruja Dona Ló dava aulas de noite, debaixo da lua.",
+      "{nome} foi a visita especial da aula.",
+      ["?", "aula", "Sobre o que foi a aula da coruja?", ["As estrelas", "Os números", "Os sons dos bichos", "As cores"]],
+      "Dona Ló ensinou tudo sobre {aula}, devagar e com paciência.",
+      "Quando alguém não entendia, ela explicava de novo, sem pressa.",
+      "+ — Perguntar é coisa de quem quer aprender — dizia Dona Ló.",
+      ["?", "pergunta", "O que você perguntou para a coruja?", ["Por que a lua brilha?", "Como os bichos dormem?", "Quantas estrelas existem?"]],
+      "{nome} perguntou: {pergunta} Dona Ló sorriu e respondeu com um segredo da floresta.",
+      "No fim da aula, todos os bichos foram dormir. E {nome} também." ]],
+    ["trem", "🚂", "O trem das nuvens", "Uma viagem no céu", [
+      "Toda noite passa um trem feito de nuvem pela janela de {nome}.",
+      "Hoje ele parou e o maquinista disse: — Pode subir, {nome}!",
+      ["?", "vagao", "Qual vagão você escolheu?", ["O dos brinquedos", "O dos bichos", "O dos doces", "O das estrelas"]],
+      "{nome} sentou no vagão {vagao} e o trem fez: piuí, piuí!",
+      "+ O trem passou por cima das montanhas, dos rios e das cidades dormindo.",
+      ["?", "parada", "Onde o trem parou?", ["Na casa da vovó", "Num castelo", "Numa praia", "Numa floresta"]],
+      "O trem parou {parada}, e {nome} desceu para olhar tudo com calma.",
+      "Depois, piuí, piuí, o trem voltou devagarinho.",
+      "Deixou {nome} na cama e foi embora, soltando fumacinha de nuvem." ]],
+    ["fazenda", "🐄", "Um dia na fazenda", "Cuidar dos bichos", [
+      "{nome} acordou cedo na fazenda. O galo cantou: cocoricó!",
+      ["?", "animal", "Qual bicho você foi visitar primeiro?", ["A vaca", "O cavalo", "As galinhas", "O porquinho"]],
+      "O amigo {animal} ficou feliz com a visita e fez barulho de alegria.",
+      ["?", "comida", "O que você deu para os bichos comerem?", ["Milho", "Capim", "Cenoura", "Frutas"]],
+      "{nome} deu {comida} para os bichos, um pouquinho para cada um.",
+      "+ Depois, {nome} ajudou a recolher os ovos, com muito cuidado para não quebrar.",
+      "No fim do dia, o sol se escondeu atrás do morro, todo laranja.",
+      "Os bichos foram dormir no celeiro, e {nome} dormiu ouvindo os grilos: cri, cri, cri." ]],
+    ["balao", "🎈", "O balão que voou alto", "Ver o mundo lá de cima", [
+      "{nome} segurava um balão de ar quente bem grande e colorido.",
+      "— Segura firme! — disse o balão. E foi subindo, subindo.",
+      ["?", "pessoa", "Quem foi com você no balão?", ["Mamãe", "Papai", "Vovó", "Ninguém"]],
+      "{nome} e {pessoa} viram tudo ficar pequenininho lá embaixo.",
+      ["?", "ver", "O que vocês viram lá de cima?", ["A nossa casa", "O mar", "Uma floresta", "Um arco-íris"]],
+      "Lá de cima dava para ver {ver}. Que bonito!",
+      "+ Um passarinho voou do lado do balão e deu bom dia.",
+      "Quando o vento ficou calminho, o balão desceu devagar, como uma folha.",
+      "E {nome} pisou no chão sorrindo, guardando a viagem no coração." ]],
+    ["castelo", "🏰", "O castelo de travesseiros", "Construir um castelo fofinho", [
+      "Na sala, {nome} juntou todas as almofadas e travesseiros da casa.",
+      "— Vou construir um castelo! — disse {nome}.",
+      ["?", "nomeCastelo", "Qual é o nome do castelo?", ["Castelo Fofinho", "Castelo das Estrelas", "Castelo do Sono"]],
+      "E assim nasceu o {nomeCastelo}, com torres macias e uma porta de cobertor.",
+      ["?", "morador", "Quem mora no castelo com você?", ["Meus bichinhos de pelúcia", "Um dragão", "Uma princesa", "Um gatinho"]],
+      "No castelo moravam {nome} e {morador}.",
+      "+ Eles fizeram uma bandeira, uma ponte e até uma janela para olhar a lua.",
+      "Quando a noite chegou, o castelo virou a cama mais quentinha do mundo.",
+      "E todos dormiram no {nomeCastelo}, abraçadinhos." ]],
+    ["girafa", "🦒", "A girafa que não cabia na cama", "Uma solução para a girafa", [
+      "A girafa Gigi tinha um pescoço tão comprido que não cabia em cama nenhuma.",
+      "Ela foi pedir ajuda para {nome}: — Como eu vou dormir?",
+      ["?", "ideia", "Que ideia você teve para a Gigi dormir?", ["Juntar duas camas", "Dormir na grama", "Enrolar o pescoço", "Fazer uma rede"]],
+      "{nome} pensou e disse: — {ideia}!",
+      "Gigi experimentou e… deu certo! Ela ficou toda confortável.",
+      "+ Ela ficou tão feliz que contou para os outros bichos da savana.",
+      ["?", "travesseiro", "O que a Gigi usou de travesseiro?", ["Uma nuvem", "Uma folha grande", "Um saco de algodão", "O meu travesseiro"]],
+      "Gigi deitou a cabeça em {travesseiro} e suspirou: — Que delícia.",
+      "— Boa noite, {nome}. Obrigada por pensar em mim. — E dormiu na hora." ]],
+    ["chuva", "🌧️", "A chuva que tocava música", "Ouvir os sons da chuva", [
+      "Começou a chover, e {nome} ficou olhando pela janela.",
+      "As gotas faziam: plic, ploc, plic, ploc. Parecia música!",
+      ["?", "instrumento", "Que instrumento a chuva parecia tocar?", ["Tambor", "Piano", "Xilofone", "Chocalho"]],
+      "{nome} fechou os olhos e escutou: a chuva tocava {instrumento} no telhado.",
+      "+ O trovão longe fazia o som grave, e o vento fazia o assobio.",
+      ["?", "danca", "Como você dançou a música da chuva?", ["Rodando", "Pulando", "Bem devagar", "Batendo palmas"]],
+      "{nome} dançou {danca}, de pijama, na sala.",
+      "Aos pouquinhos, a chuva foi tocando mais baixo, mais baixo…",
+      "Até virar só um barulhinho gostoso para dormir. Plic… ploc… boa noite." ]],
+    ["formigas", "🐜", "As formigas que trabalham juntas", "Juntos fica mais fácil", [
+      "No quintal, {nome} viu uma fila de formigas carregando folhas.",
+      "Uma formiguinha tentava levar uma folha grande sozinha e não conseguia.",
+      ["?", "ajuda", "O que você disse para a formiguinha?", ["Peça ajuda!", "Eu te ajudo!", "Tente de novo!", "Vamos juntos!"]],
+      "{nome} disse: — {ajuda}",
+      "As outras formigas vieram e, juntas, levantaram a folha. Ficou fácil!",
+      "+ Cada formiga segurava uma pontinha. Ninguém precisava fazer tudo sozinha.",
+      ["?", "numero", "Quantas formigas ajudaram?", ["3", "5", "10", "100"]],
+      "Foram {numero} formigas! Elas levaram a folha até o formigueiro e fizeram uma festa.",
+      "E {nome} lembrou: quando é difícil, pedir ajuda é uma coisa muito boa." ]],
+    ["cachorro", "🐶", "O cachorrinho que achou o caminho", "Ajudar um cachorrinho a voltar", [
+      "No parque, {nome} encontrou um cachorrinho sozinho, com carinha de perdido.",
+      ["?", "nomeBicho", "Qual era o nome escrito na coleira?", ["Toby", "Mel", "Pipoca", "Thor"]],
+      "Na coleira estava escrito: {nomeBicho}. — Calma, {nomeBicho}, eu te ajudo.",
+      ["?", "pista", "Que pista ajudou a achar a casa dele?", ["O cheiro", "Uma bolinha", "O latido de outro cachorro", "Um mapa"]],
+      "{nome} seguiu a pista: {pista}. E foram andando devagar.",
+      "+ Passaram pela fonte, pela banca de flores e pela casa amarela.",
+      "Até que uma menina saiu correndo: — {nomeBicho}! Você voltou!",
+      "{nomeBicho} abanou o rabo e lambeu a mão de {nome} para agradecer.",
+      "Naquela noite, {nome} dormiu com o coração quentinho." ]],
+    ["junina", "🌽", "A festa junina da floresta", "Dançar quadrilha com os bichos", [
+      "Na floresta ia ter festa junina, e {nome} foi a visita de honra.",
+      ["?", "comida", "Qual comida de festa junina você mais gosta?", ["Pipoca", "Pamonha", "Milho cozido", "Paçoca"]],
+      "Tinha {comida} para todo mundo, e os bichos comeram devagarinho.",
+      "Depois começou a quadrilha: — Olha a cobra! É mentira!",
+      ["?", "par", "Quem dançou a quadrilha com você?", ["O sapo", "A coelha", "O macaco", "A raposa"]],
+      "{nome} dançou com {par}, de mãos dadas, rodando e rindo.",
+      "+ Os vaga-lumes acenderam as luzes, igual bandeirinhas no céu.",
+      "Quando a festa acabou, todos disseram: — Até o ano que vem!",
+      "E {nome} voltou para casa com cheirinho de pipoca e muito sono." ]],
+    ["superpoder", "✨", "O dia do superpoder", "Usar um poder para o bem", [
+      "Numa manhã, {nome} acordou e descobriu que tinha um superpoder!",
+      ["?", "poder", "Qual era o seu superpoder?", ["Voar", "Falar com os bichos", "Fazer flores crescerem", "Ficar invisível"]],
+      "O superpoder de {nome} era {poder}.",
+      "Mas super-heróis de verdade usam o poder para ajudar.",
+      ["?", "ajudar", "Quem você ajudou com o seu poder?", ["Um passarinho", "A vovó", "Um amigo da escola", "Uma árvore"]],
+      "{nome} ajudou {ajudar}, e a pessoa ficou tão feliz que ganhou um sorriso enorme.",
+      "+ No fim do dia, o poder ficou cansado e precisou descansar.",
+      "— Amanhã a gente ajuda mais — disse {nome}.",
+      "E foi dormir, porque até super-heróis precisam de uma boa noite de sono." ]],
+    ["vento", "🍃", "O vento que veio brincar", "Uma brincadeira com o vento", [
+      "Pela janela entrou um ventinho brincalhão.",
+      "Ele mexeu na cortina, no cabelo de {nome} e nas folhas do caderno.",
+      ["?", "brinquedo", "Com o que o vento quis brincar?", ["Com a pipa", "Com bolhas de sabão", "Com as folhas", "Com um avião de papel"]],
+      "{nome} e o vento brincaram {brinquedo}. O vento soprava e {nome} corria atrás.",
+      "+ Às vezes o vento soprava forte, às vezes bem fraquinho, como um sussurro.",
+      ["?", "sentimento", "O que você sentiu brincando com o vento?", ["Alegria", "Vontade de rir", "Liberdade", "Calma"]],
+      "{nome} sentiu {sentimento}. É bom sentir as coisas do coração.",
+      "Quando a noite chegou, o vento ficou bem calminho e disse: — Agora vou soprar só um pouquinho, para você dormir.",
+      "E soprou… fffff… até {nome} fechar os olhos." ]],
+    ["fundo-quintal", "🐞", "A joaninha que contava pintinhas", "Contar com a joaninha", [
+      "Uma joaninha pousou no dedo de {nome}.",
+      "— Oi! Eu sou a Juju. Você me ajuda a contar minhas pintinhas?",
+      ["?", "numero", "Quantas pintinhas a Juju tinha?", ["2", "5", "7", "10"]],
+      "{nome} contou com calma: eram {numero} pintinhas!",
+      "— Obrigada! — disse Juju. — Ninguém nunca tinha contado.",
+      "+ Juju contou que cada pintinha era uma lembrança feliz.",
+      ["?", "lembranca", "Qual lembrança feliz você daria para a Juju?", ["Um dia na praia", "Um abraço da mamãe", "Brincar no parque", "Meu aniversário"]],
+      "{nome} deu para a Juju a lembrança de {lembranca}. Nasceu mais uma pintinha!",
+      "Juju abriu as asas e voou para dormir numa folha. E {nome} foi dormir também." ]],
+    ["nuvem", "☁️", "A nuvem que queria ser bicho", "Descobrir formas no céu", [
+      "Na grama, de barriga para cima, {nome} olhava as nuvens passando.",
+      "Uma nuvenzinha desceu e disse: — Eu queria ter a forma de um bicho. Você me ajuda?",
+      ["?", "animal", "Que bicho a nuvem virou?", ["Um coelho", "Um elefante", "Um peixe", "Um cachorro"]],
+      "A nuvem se esticou, se apertou, e virou o amigo {animal}!",
+      "+ As outras nuvens viram e também quiseram virar bichos. O céu virou um zoológico fofinho.",
+      ["?", "brincadeira", "Do que vocês brincaram no céu?", ["Pega-pega", "Esconde-esconde", "Dançar", "Contar estrelas"]],
+      "{nome} e o amigo {animal} brincaram de {brincadeira} até o céu ficar laranja.",
+      "Quando escureceu, a nuvem disse: — Obrigada! Agora vou dormir em cima da sua casa.",
+      "E ficou lá, fofinha, guardando o sono de {nome}." ]]
+  ];
+  // Converte para o mesmo formato das histórias com resposta da criança.
+  const libStep = l => {
+    if (typeof l === "string") return l.startsWith("+ ") ? { t: l.slice(2), older: true } : { t: l };
+    const [, k, q, chips] = l;
+    return { q, k, chips, map: (v, A) => {
+      if (/^(ningu[eé]m|ainda n)/i.test(v)) { A[k] = k === "escola" ? "a escola" : "um amigo imaginário"; return; }
+      A[k] = PROPER.includes(k) ? v : STRIP.includes(k) ? low(v).replace(/^(um|uma|o|a|os|as)\s+/i, "") : low(v);
+    } };
+  };
+  LIB.forEach(([id, e, n, d, lines]) => STORIES.push({ id, e, n, d, steps: lines.map(libStep) }));
+
+  const fill = (t, A) => t.replace(/\{(\w+)\}/g, (_, k) => A[k] ?? "");
+  const fillHtml = (t, A) => t.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])
+    .replace(/\{(\w+)\}/g, (_, k) => k === "comAmigo" || k === "naEscola" ? (A[k] ?? "") : `<span class="you">${A[k] ?? ""}</span>`);
+
+  // A história nova de cada noite é escrita pelo Claude, quando esta página pode pedir.
+  let sampleFn = null;
+  (async () => { try { sampleFn = window.claude && await window.claude.use("sample"); } catch (e) {} if (sampleFn && current === "dormir") go("dormir"); })();
+
+  function dormir() {
+    document.body.classList.add("night");
+    cleanup = () => document.body.classList.remove("night");
+    S.bed = S.bed || { facts: {}, saga: "" };
+    app.innerHTML = topBar("Hora de dormir", true) + `<section class="screen t-night"><h2>🌙 Hora de dormir</h2><div class="panel" id="panel" aria-live="polite"></div></section>`;
+    const p = document.getElementById("panel");
+    let speakNow = () => say("Hora de dormir. Vamos escolher uma história?", 0.75);
+    document.getElementById("hear").onclick = () => speakNow();
+    if (!S.name || !S.age) return setup();
+    menu();
+
+    function setup() {
+      p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div>
+        <p>Para a criança entrar na história, preciso saber o nome e a idade dela. Um adulto pode preencher.</p>
+        <div class="form-row"><label for="bn">Nome</label><input id="bn" maxlength="20" value="${(S.name || "").replace(/"/g, "&quot;")}">
+          <label for="ba">Idade</label><select id="ba">${[3,4,5,6,7,8,9,10,11,12].map(n => `<option ${S.age == n ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+        <button class="btn" id="ok">Pronto</button>`;
+      p.querySelector("#ba").value = String(S.age || 6);
+      p.querySelector("#ok").onclick = () => {
+        const n = clean(p.querySelector("#bn").value); if (!n) { p.querySelector("#bn").focus(); return; }
+        S.name = cap(n); setAge(+p.querySelector("#ba").value, false); menu();
+      };
+    }
+
+    // A "história de hoje" é a próxima que a criança ainda não ouviu; dá para escolher outra.
+    function menu() {
+      const canNew = !!sampleFn;
+      S.bed.seen = S.bed.seen || [];
+      if (S.bed.today && S.bed.today.day !== today()) S.bed.today = null;
+      if (!S.bed.today) {
+        const fresh = STORIES.filter(x => !S.bed.seen.includes(x.id));
+        if (!fresh.length) S.bed.seen = [];
+        S.bed.today = { day: today(), id: rand(fresh.length ? fresh : STORIES).id }; save();
+      }
+      const tonight = STORIES.find(x => x.id === S.bed.today.id) || STORIES[0];
+      const title = st => escapeHtml(fill(st.n, { nome: S.name }));
+      p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div>
+        <p>Boa noite, <b>${escapeHtml(S.name)}</b>! Hoje você vai ser personagem da história.</p>
+        <button class="tonight" id="tonight"><span class="te">${tonight.e}</span><span><small>História de hoje</small><b>${title(tonight)}</b></span></button>
+        <div class="row">
+          ${canNew ? `<button class="btn soft" data-new="1">✨ Uma história nova</button>` : ""}
+          ${canNew && S.bed.saga ? `<button class="btn soft" data-new="2">📖 Continuar a aventura de ontem</button>` : ""}
+          <button class="btn soft" id="others">Escolher outra</button>
+        </div>
+        <div class="story-pick" id="list" hidden>
+          ${STORIES.map((st, i) => `<button data-s="${i}"><b>${st.e} ${title(st)}</b><small>${st.d}${S.bed.seen.includes(st.id) ? " · já ouvida" : ""}</small></button>`).join("")}
+        </div>
+        <button class="linkish" id="who">Mudar nome ou idade</button>`;
+      const play = st => { if (!S.bed.seen.includes(st.id)) S.bed.seen.push(st.id); save(); playTemplate(st); };
+      $id("tonight").onclick = () => play(tonight);
+      $id("others").onclick = () => { $id("list").hidden = !$id("list").hidden; };
+      p.querySelectorAll("[data-s]").forEach(b => b.onclick = () => play(STORIES[+b.dataset.s]));
+      p.querySelectorAll("[data-new]").forEach(b => b.onclick = () => playLive(b.dataset.new === "2"));
+      p.querySelector("#who").onclick = () => gate(() => { go("dormir"); setTimeout(() => { const w = $id("who"); w && w.click(); }, 0); });
+      speakNow = () => say(`Boa noite, ${S.name}! A história de hoje é: ${fill(tonight.n, { nome: S.name })}.`, 0.75); speakNow();
+    }
+
+    // Uma tela por trecho: o texto aparece, é lido devagar, e a criança toca em "Continuar".
+    function showLine(html, plain, next, label) {
+      p.innerHTML = `<p class="story-line">${html}</p><button class="btn" id="go">${label || "Continuar ▸"}</button>`;
+      speakNow = () => say(plain, 0.75); speakNow();
+      p.querySelector("#go").onclick = next; p.querySelector("#go").focus();
+    }
+    // Pergunta com três jeitos de responder: falar, tocar numa opção ou um adulto digitar.
+    function ask(qHtml, qPlain, chips, onAnswer) {
+      const known = [];
+      p.innerHTML = `<p class="story-line">${qHtml}</p>
+        <div class="answer">
+          ${chips.length ? `<div class="row">${chips.map(c => `<button class="chip">${String(c).replace(/</g, "&lt;")}</button>`).join("")}</div>` : ""}
+          ${SR && !micBlocked ? `<button class="mic" id="mic" aria-label="Responder falando">🎤</button><div class="heard" id="heard"></div>` : ""}
+          <div class="form-row"><input id="typed" placeholder="Ou escreva aqui" maxlength="40" aria-label="Resposta"><button class="btn soft" id="send">OK</button></div>
+        </div>`;
+      speakNow = () => say(qPlain, 0.8); speakNow();
+      let stop = null, done = false;
+      const finish = v => { v = clean(v); if (!v || done) return; done = true; stop && stop(); onAnswer(cap(v)); };
+      p.querySelectorAll(".chip").forEach(b => b.onclick = () => finish(b.textContent));
+      p.querySelector("#send").onclick = () => finish(p.querySelector("#typed").value);
+      p.querySelector("#typed").onkeydown = e => { if (e.key === "Enter") finish(e.target.value); };
+      const mic = p.querySelector("#mic");
+      if (mic) mic.onclick = () => {
+        mic.classList.add("on"); const heard = p.querySelector("#heard"); heard.textContent = "Estou ouvindo…";
+        stop = listen({ continuous: false,
+          onText: t => { heard.textContent = t; },
+          onFail: () => { mic.remove(); heard.textContent = "Não consegui ouvir aqui. Toque numa opção ou escreva."; },
+          onDone: t => { mic.classList.remove("on"); if (t) finish(t); else heard.textContent = "Não ouvi. Pode tentar de novo."; } });
+      };
+      const prevStop = cleanup; cleanup = () => { stop && stop(); prevStop && prevStop(); cleanup = prevStop; };
+    }
+
+    function playTemplate(story) {
+      const A = Object.assign({}, S.bed.facts, { nome: S.name, idade: String(S.age) });
+      const steps = story.steps.filter(s => !s.older || S.age >= 7);
+      let i = 0;
+      const step = () => {
+        if (i >= steps.length) return goodnight();
+        const s = steps[i++];
+        if (s.q) {
+          const known = S.bed.facts[s.k]; const chips = known && !s.chips.includes(known) ? [known, ...s.chips] : s.chips;
+          ask(fillHtml(s.q, A), fill(s.q, A), chips, v => {
+            A[s.k] = v; if (s.map) s.map(v, A);
+            if (!/ningu|ainda n/i.test(v)) { S.bed.facts[s.k] = v; save(); }
+            say(rand(["Que legal!", "Adorei!", "Que bonito!", "Boa ideia!"]), 0.8); setTimeout(step, 900);
+          });
+        } else {
+          const t = s.alt && s.alt.when(A) ? s.alt.t : s.t;
+          showLine(fillHtml(t, A), fill(t, A), step, i >= steps.length ? "Fim ✦" : undefined);
+        }
+      };
+      step();
+    }
+
+    function playLive(continueSaga) {
+      const facts = Object.entries(S.bed.facts).map(([k, v]) => `${k}: ${v}`).join("; ") || "nenhuma ainda";
+      const rules = `Você conta histórias para dormir, em português do Brasil, para ${S.name}, que tem ${S.age} anos. A criança pode ter autismo ou dificuldade de aprendizado.
+Regras:
+- ${S.name} é a personagem principal da história. Use o nome dela sempre.
+- Tom calmo, carinhoso e previsível. Nada assustador: sem vilões, perigo, sustos, tristeza forte ou ironia.
+- Frases curtas e concretas. ${S.age <= 5 ? "Use frases bem curtas e palavras simples." : S.age <= 8 ? "Use frases simples." : "Pode usar frases um pouco mais ricas."}
+- Não use adjetivos de gênero para a criança (escreva "a criança", "${S.name}", "com sono" em vez de "cansado/cansada").
+- O que já sabemos da criança: ${facts}. Use uma ou duas dessas coisas, sem forçar.
+- ${continueSaga && S.bed.saga ? `Esta é a continuação da aventura da noite passada: "${S.bed.saga}". Comece lembrando dela em uma frase.` : "Comece uma aventura nova."}
+- A história tem exatamente 3 perguntas para a criança, uma por vez (por exemplo: o nome da escola, um amigo, um lugar, uma cor, um bicho). Cada resposta tem que entrar de verdade na continuação. Se a resposta for estranha ou não fizer sentido, aceite com carinho e transforme em algo bom.
+- Depois da 3ª resposta, termine a história em 3 a 4 frases, acalmando e levando ${S.name} a dormir.
+Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou null", "opcoes": ["até 4 respostas curtas de exemplo"], "fim": false, "resumo": "quando fim for true: uma frase sobre a aventura, para continuar amanhã"}`;
+      const turns = [{ role: "user", content: rules + "\n\nComece a história." }];
+      let asked = 0;
+      const round = async () => {
+        p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div><p class="wait">A história está sendo escrita…</p>`;
+        try {
+          const r = await sampleFn.json(turns, { modelTier: "quick", cache: false });
+          const texto = clean2(r && r.texto), pergunta = asked < 3 && !r.fim ? clean2(r.pergunta) : "";
+          if (!texto) throw { code: "invalid_json" };
+          turns.push({ role: "assistant", content: JSON.stringify(r) });
+          const esc = s => s.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]).split(S.name).join(`<span class="you">${S.name}</span>`);
+          if (pergunta) {
+            showLine(esc(texto), texto, () => ask(esc(pergunta), pergunta, (r.opcoes || []).slice(0, 4).map(clean2).filter(Boolean), v => {
+              asked++; turns.push({ role: "user", content: `${S.name} respondeu: "${v}". Continue a história.${asked >= 3 ? " Agora termine a história (fim: true)." : ""}` });
+              say("Que legal!", 0.8); round();
+            }));
+          } else {
+            if (r.resumo) { S.bed.saga = clean2(r.resumo).slice(0, 160); save(); }
+            showLine(esc(texto), texto, goodnight, "Fim ✦");
+          }
+        } catch (e) {
+          if (e && (e.code === "not_granted" || e.code === "sampling_disabled" || e.code === "capability_disabled")) sampleFn = null;
+          p.innerHTML = `<p>Não deu para criar uma história nova agora. Que tal uma das histórias prontas?</p><button class="btn" id="back">Escolher história</button>`;
+          p.querySelector("#back").onclick = menu;
+        }
+      };
+      round();
+    }
+    function clean2(s) { return String(s || "").replace(/[<>{}]/g, "").replace(/\s+/g, " ").trim().slice(0, 600); }
+
+    function goodnight() {
+      star("dormir");
+      p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div>
+        <p class="story-line">Boa noite, <span class="you">${S.name}</span>. Vamos respirar devagar três vezes e fechar os olhos.</p>
+        <div class="row"><button class="btn" id="off">Apagar a tela</button><button class="btn soft" id="again">Outra história</button></div>`;
+      speakNow = () => say(`Boa noite, ${S.name}. Vamos respirar devagar três vezes. Cheire a flor... sopre a vela. Cheire a flor... sopre a vela. Cheire a flor... sopre a vela. Agora, olhinhos fechados. Durma bem.`, 0.65); speakNow();
+      p.querySelector("#again").onclick = menu;
+      p.querySelector("#off").onclick = () => {
+        const o = h(`<div class="lights-out" role="dialog" aria-label="Tela apagada"><p>Durma bem, ${S.name}.<br><small>Toque para voltar</small></p></div>`);
+        for (let k = 0; k < 24; k++) { const s = document.createElement("span"); s.className = "tw"; s.style.left = Math.random() * 100 + "%"; s.style.top = Math.random() * 100 + "%"; s.style.animationDelay = (Math.random() * 4) + "s"; o.appendChild(s); }
+        o.onclick = () => o.remove(); document.body.appendChild(o);
+        const prev = cleanup; cleanup = () => { o.remove(); prev && prev(); };
+      };
+    }
+  }
+
+  // ---------- Números e contas ----------
+  // Nível 1: contar até 5 · 2: até 10 e somas com figuras · 3: até 20, soma e subtração · 4: dezenas e multiplicação
+  const MATH = [null, { max: 5, cmp: 5, pics: true }, { max: 10, cmp: 10, pics: true }, { max: 20, cmp: 50, pics: false }, { max: 20, cmp: 100, pics: false }];
+  const THINGS = ["🍎", "⭐", "🐟", "🌸", "🚗", "🎈", "🐞", "🍪"];
+  const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const NUM_NAMES = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez"];
+  const numOpts = (ans, spread) => { const s = new Set([ans]); while (s.size < 3) { const v = ans + ri(-spread, spread); if (v >= 0 && v !== ans) s.add(v); } return shuffle([...s]); };
+  const picRow = (n, e) => `<span class="pics">${Array.from({ length: n }, () => `<span>${e}</span>`).join("")}</span>`;
+  // Gera uma conta de acordo com o nível: {txt, say, ans, pics?}
+  function makeSum(d) {
+    if (d <= 2) { const a = ri(1, d === 1 ? 3 : 6), b = ri(1, (d === 1 ? 5 : 10) - a), e = rand(THINGS); return { txt: `${a} + ${b}`, say: `${a} mais ${b}`, ans: a + b, pics: `${picRow(a, e)}<b class="op">+</b>${picRow(b, e)}`, a, b, e }; }
+    if (d === 3) { if (Math.random() < .5) { const a = ri(3, 12), b = ri(1, 20 - a); return { txt: `${a} + ${b}`, say: `${a} mais ${b}`, ans: a + b }; }
+      const a = ri(6, 20), b = ri(1, a - 1); return { txt: `${a} − ${b}`, say: `${a} menos ${b}`, ans: a - b }; }
+    const k = ri(0, 2);
+    if (k === 0) { const a = ri(1, 4) * 10 + ri(0, 5), b = ri(1, 4) * 10 + ri(0, 4); return { txt: `${a} + ${b}`, say: `${a} mais ${b}`, ans: a + b }; }
+    if (k === 1) { const a = ri(5, 9) * 10 + ri(5, 9), b = ri(1, 4) * 10 + ri(0, 4); return { txt: `${a} − ${b}`, say: `${a} menos ${b}`, ans: a - b }; }
+    const a = rand([2, 3, 5]), b = ri(2, 6), e = rand(THINGS);
+    return { txt: `${a} × ${b}`, say: `${a} vezes ${b}`, ans: a * b, pics: Array.from({ length: b }, () => picRow(a, e)).join(" "), groups: true };
+  }
+
+  function numeros() {
+    shell("numeros", TAB_NAMES.numeros, (tab, p, setSpeak) => [contar, comparar, continhas][tab](p, setSpeak));
+  }
+  function contar(p, setSpeak) {
+    const L = MATH[skLv("matematica")], n = ri(1, L.max), e = rand(THINGS);
+    p.innerHTML = `<p class="hint">Quantos tem? Conte com o dedinho.</p>
+      <div class="count-grid">${Array.from({ length: n }, (_, i) => `<button class="cnt" aria-label="item ${i + 1}">${e}</button>`).join("")}</div>
+      <div class="choices">${numOpts(n, n > 5 ? 3 : 2).map(o => `<button class="choice word" data-o="${o}">${o}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">De novo</button></div>`;
+    // Tocar em cada figura conta em voz alta e marca a figura.
+    let c = 0;
+    p.querySelectorAll(".cnt").forEach(b => b.onclick = () => { if (b.classList.contains("on")) return; b.classList.add("on"); c++; say(c <= 10 ? NUM_NAMES[c] : String(c), 0.9); });
+    let done = false;
+    p.querySelectorAll("[data-o]").forEach(b => b.onclick = () => {
+      if (done) return;
+      if (+b.dataset.o === n) { done = true; b.classList.add("right"); const m = rand(praise); p.querySelector("#fb").textContent = `${m} São ${n}.`; say(`${m} São ${n}!`); star("numeros"); track(true, p, "matematica"); }
+      else { b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); track(false, p, "matematica"); p.querySelector("#fb").textContent = "Vamos contar juntos, tocando em cada um."; say("Vamos contar juntos. Toque em cada um."); }
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; contar(p, setSpeak); };
+    setSpeak(() => say("Quantos tem? Conte com o dedinho.")); say("Quantos tem? Conte com o dedinho.");
+  }
+  function comparar(p, setSpeak) {
+    const L = MATH[skLv("matematica")];
+    let a = ri(1, L.cmp), b = ri(1, L.cmp); while (b === a) b = ri(1, L.cmp);
+    const e = rand(THINGS), q = L.pics ? "Qual lado tem mais?" : "Qual número é maior?";
+    const side = (v, k) => `<button class="side" data-k="${k}">${L.pics ? picRow(v, e) : `<span class="bignum">${v}</span>`}</button>`;
+    p.innerHTML = `<p class="hint">${q}</p><div class="sides">${side(a, "a")}${side(b, "b")}</div><div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">De novo</button></div>`;
+    let done = false;
+    p.querySelectorAll(".side").forEach(btn => btn.onclick = () => {
+      if (done) return;
+      const ok = (btn.dataset.k === "a") === (a > b);
+      if (ok) { done = true; btn.classList.add("right"); const m = rand(praise); p.querySelector("#fb").textContent = `${m} ${Math.max(a, b)} é maior que ${Math.min(a, b)}.`; say(`${m} ${Math.max(a, b)} é maior que ${Math.min(a, b)}.`); star("numeros"); track(true, p, "matematica"); }
+      else { btn.classList.remove("try"); void btn.offsetWidth; btn.classList.add("try"); track(false, p, "matematica"); p.querySelector("#fb").textContent = "Olhe de novo com calma."; say("Olhe de novo com calma."); }
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; comparar(p, setSpeak); };
+    setSpeak(() => say(q)); say(q);
+  }
+  function continhas(p, setSpeak) {
+    const d = skLv("matematica"), c = makeSum(d);
+    p.innerHTML = `<p class="hint">Quanto é?</p>
+      ${c.pics ? `<div class="sum-pics">${c.pics}</div>` : ""}
+      <div class="bignum">${c.txt} = ?</div>
+      <div class="choices">${numOpts(c.ans, c.ans > 10 ? 4 : 2).map(o => `<button class="choice word" data-o="${o}">${o}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="help">💡 Ajuda</button><button class="btn soft" id="next">Outra conta</button></div>`;
+    let done = false;
+    p.querySelectorAll("[data-o]").forEach(b => b.onclick = () => {
+      if (done) return;
+      if (+b.dataset.o === c.ans) { done = true; b.classList.add("right"); const m = rand(praise); p.querySelector("#fb").textContent = `${m} ${c.txt} = ${c.ans}.`; say(`${m} ${c.say} é igual a ${c.ans}.`); star("numeros"); track(true, p, "matematica"); }
+      else { b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); track(false, p, "matematica"); p.querySelector("#fb").textContent = "Quase! Toque em Ajuda se quiser."; say("Quase! Tente de novo."); }
+    });
+    // Ajuda: mostra bolinhas para contar (ou os grupos, na multiplicação).
+    p.querySelector("#help").onclick = () => {
+      if (c.pics) { say(c.groups ? `São ${c.txt.split(" × ")[1]} grupos de ${c.txt.split(" × ")[0]}. Conte todos.` : `Junte tudo e conte.`); return; }
+      const [x, op, y] = c.txt.split(" ");
+      if (+x <= 20) { p.querySelector(".bignum").insertAdjacentHTML("afterend", `<div class="sum-pics">${picRow(+x, "🔵")}<b class="op">${op}</b>${picRow(+y, op === "+" ? "🔵" : "⚪")}</div>`); say(op === "+" ? "Junte as bolinhas e conte." : `Comece com ${x} e tire ${y}.`); }
+      else say(`Primeiro as dezenas, depois as unidades.`);
+      p.querySelector("#help").disabled = true;
+    };
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; continhas(p, setSpeak); };
+    setSpeak(() => say(`Quanto é ${c.say}?`)); say(`Quanto é ${c.say}?`);
+  }
+
+  // ---------- Fala ----------
+  function fala() {
+    shell("fala", ["Ginástica da boca", "Sílabas", "Trava-línguas"], (tab, p, setSpeak) => [boca, silabas, trava][tab](p, setSpeak));
+  }
+  function boca(p, setSpeak) {
+    p.innerHTML = `<p class="hint">Faça na frente do espelho. Toque nas bolinhas a cada vez que fizer (5 vezes).</p>
+      <div class="list">${MOUTH.map((m, i) => `<div class="item"><span class="face" aria-hidden="true">${m.f}</span><p>${m.t}</p>
+        <div class="count" data-i="${i}">${[0,1,2,3,4].map(k => `<button class="dot" aria-label="Vez ${k + 1}"></button>`).join("")}</div></div>`).join("")}</div>`;
+    setSpeak(() => say("Ginástica da boca. Faça cada movimento cinco vezes, na frente do espelho."));
+    p.querySelectorAll(".item").forEach((it, i) => it.querySelector(".face").onclick = () => say(MOUTH[i].say));
+    p.querySelectorAll(".count").forEach(c => c.querySelectorAll(".dot").forEach((d, k) => d.onclick = () => {
+      d.classList.add("on"); say(String(k + 1), 0.9);
+      if ([...c.children].every(x => x.classList.contains("on"))) { star("fala"); setTimeout(() => say(rand(praise)), 500); }
+    }));
+    say("Ginástica da boca. Toque na carinha para ouvir o que fazer.");
+  }
+  function silabas(p, setSpeak) {
+    let cons = "B";
+    const draw = () => {
+      p.innerHTML = `<p class="hint">Escolha uma letra. Toque na sílaba, escute e repita em voz alta.</p>
+        <div class="tabs" style="justify-content:center">${CONS.map(c => `<button class="tab" data-c="${c}" aria-selected="${c === cons}">${c}</button>`).join("")}</div>
+        <div class="syl-grid">${["A","E","I","O","U"].map(v => `<button class="syl">${cons}${v}</button>`).join("")}</div>
+        <div class="row"><button class="btn" id="all">Ouvir todas</button><button class="btn soft" id="did">Eu repeti!</button></div>
+        <div class="feedback" id="fb"></div>`;
+      p.querySelectorAll("[data-c]").forEach(b => b.onclick = () => { cons = b.dataset.c; draw(); });
+      p.querySelectorAll(".syl").forEach(b => b.onclick = () => say(b.textContent.toLowerCase(), 0.6));
+      p.querySelector("#all").onclick = () => say(["a","e","i","o","u"].map(v => cons.toLowerCase() + v).join("... "), 0.55);
+      p.querySelector("#did").onclick = () => { star("fala"); const m = rand(praise); p.querySelector("#fb").textContent = m; say(m); };
+    };
+    draw();
+    setSpeak(() => say("Toque na sílaba, escute, e repita em voz alta."));
+    say("Toque na sílaba, escute, e repita em voz alta.");
+  }
+  function trava(p, setSpeak) {
+    let i = 0;
+    const draw = () => {
+      const t = TONGUE[i];
+      p.innerHTML = `<p class="hint">Primeiro bem devagar. Depois um pouco mais rápido.</p>
+        <p class="tongue">${t}</p>
+        <div class="row"><button class="btn" id="slow">🐢 Devagar</button><button class="btn soft" id="fast">🐇 Normal</button></div>
+        <div class="row"><button class="btn soft" id="did">Eu falei!</button><button class="btn soft" id="next">Outro</button></div>
+        <div class="feedback" id="fb"></div>`;
+      p.querySelector("#slow").onclick = () => say(t, 0.5);
+      p.querySelector("#fast").onclick = () => say(t, 0.95);
+      p.querySelector("#did").onclick = () => { star("fala"); const m = rand(praise); p.querySelector("#fb").textContent = m; say(m); };
+      p.querySelector("#next").onclick = () => { i = (i + 1) % TONGUE.length; draw(); };
+      setSpeak(() => say(t, 0.5));
+    };
+    draw();
+  }
+
+  // ---------- Cérebro ----------
+  function cerebro() {
+    shell("cerebro", ["Jogo da memória", "Siga a sequência", "O que vem depois?"], (tab, p, setSpeak) => [memoria, sequencia, padrao][tab](p, setSpeak));
+  }
+  function memoria(p, setSpeak) {
+    let pairs = LVs("memoria").pairs;
+    const start = () => {
+      const deck = shuffle(shuffle(EMO).slice(0, pairs).flatMap(e => [e, e]));
+      let open = [], found = 0, lock = false;
+      p.innerHTML = `<p class="hint">Vire duas cartas. Encontre os pares iguais.</p>
+        <div class="tabs" style="justify-content:center">${[3, 4, 6].map(n => `<button class="tab" data-n="${n}" aria-selected="${n === pairs}">${n} pares</button>`).join("")}</div>
+        <div class="memory" style="grid-template-columns:repeat(${pairs === 3 ? 3 : 4},minmax(0,1fr))">${deck.map((e, k) => `<button class="mcard" data-k="${k}" aria-label="Carta ${k + 1}"></button>`).join("")}</div>
+        <div class="feedback" id="fb"></div>`;
+      p.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { pairs = +b.dataset.n; start(); });
+      p.querySelectorAll(".mcard").forEach(c => c.onclick = () => {
+        if (lock || c.classList.contains("open") || c.classList.contains("done")) return;
+        c.classList.add("open"); c.textContent = deck[c.dataset.k]; open.push(c);
+        if (open.length === 2) {
+          const [a, b] = open; open = [];
+          if (deck[a.dataset.k] === deck[b.dataset.k]) {
+            a.classList.add("done"); b.classList.add("done"); found++;
+            if (found === pairs) { const m = rand(praise); p.querySelector("#fb").textContent = `${m} Você achou todos!`; say(`${m} Você achou todos os pares!`); star("cerebro"); track(true, p, "memoria"); }
+            else say("Par!");
+          } else {
+            lock = true;
+            setTimeout(() => { a.classList.remove("open"); b.classList.remove("open"); a.textContent = ""; b.textContent = ""; lock = false; }, 1200);
+          }
+        }
+      });
+    };
+    start();
+    setSpeak(() => say("Vire duas cartas e encontre os pares iguais."));
+    say("Jogo da memória. Vire duas cartas e encontre os pares iguais.");
+  }
+  function sequencia(p, setSpeak) {
+    let seq = [], step = 0, busy = false, timers = [];
+    cleanup = () => timers.forEach(clearTimeout);
+    p.innerHTML = `<p class="hint">Olhe os bichinhos acenderem. Depois toque na mesma ordem. Sem pressa.</p>
+      <div class="simon">${PADS.map((d, i) => `<button class="pad" data-i="${i}" style="background:${d.c}" aria-label="${d.n}">${d.e}</button>`).join("")}</div>
+      <div class="row"><button class="btn" id="go">Começar</button><button class="btn soft" id="again">Mostrar de novo</button></div>
+      <div class="feedback" id="fb"></div>`;
+    const pads = p.querySelectorAll(".pad"), fb = p.querySelector("#fb");
+    const flash = i => { pads[i].classList.add("lit"); timers.push(setTimeout(() => pads[i].classList.remove("lit"), 600)); };
+    const play = () => {
+      busy = true; step = 0; fb.textContent = "Olhe…";
+      seq.forEach((v, k) => timers.push(setTimeout(() => flash(v), 900 * k + 400)));
+      timers.push(setTimeout(() => { busy = false; fb.textContent = "Sua vez!"; }, 900 * seq.length + 400));
+    };
+    const grow = () => { seq.push(Math.floor(Math.random() * 4)); play(); };
+    p.querySelector("#go").onclick = () => { seq = Array.from({ length: LVs("memoria").seq - 1 }, () => Math.floor(Math.random() * 4)); grow(); say("Olhe com atenção."); };
+    p.querySelector("#again").onclick = () => { if (seq.length) play(); };
+    pads.forEach(b => b.onclick = () => {
+      if (busy || !seq.length) return;
+      const i = +b.dataset.i; flash(i);
+      if (i === seq[step]) {
+        step++;
+        if (step === seq.length) { star("cerebro"); track(true, p, "memoria"); fb.textContent = `${rand(praise)} Agora com ${seq.length + 1}.`; busy = true; timers.push(setTimeout(grow, 1300)); }
+      } else {
+        track(false, p, "memoria"); fb.textContent = "Tudo bem! Vou mostrar de novo."; say("Tudo bem! Vou mostrar de novo."); timers.push(setTimeout(play, 1400));
+      }
+    });
+    setSpeak(() => say("Olhe os bichinhos acenderem. Depois toque na mesma ordem."));
+  }
+  function padrao(p, setSpeak) {
+    const base = rand(PAT.filter(b => b.length <= LVs("raciocinio").patMax));
+    const reps = base.length === 2 ? 3 : 2;
+    const shown = Array.from({ length: base.length * reps - 1 }, (_, k) => base[k % base.length]);
+    const answer = base[shown.length % base.length];
+    const pool = [...new Set(PAT.flat())];
+    const opts = shuffle([answer, ...shuffle(pool.filter(x => x !== answer && !base.includes(x))).slice(0, 1), ...base.filter(x => x !== answer).slice(0, 1)]);
+    p.innerHTML = `<p class="hint">Olhe a fila. Qual vem depois?</p>
+      <div class="pattern">${shown.map(x => `<span>${x}</span>`).join("")}<span class="q">?</span></div>
+      <div class="choices">${opts.map(o => `<button class="choice" data-o="${o}">${o}</button>`).join("")}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">Outra fila</button></div>`;
+    let done = false;
+    p.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+      if (done) return;
+      if (b.dataset.o === answer) { done = true; b.classList.add("right"); p.querySelector(".q").textContent = answer; p.querySelector(".q").style.fontSize = "1em"; const m = rand(praise); p.querySelector("#fb").textContent = m; say(m); star("cerebro"); track(true, p, "raciocinio"); }
+      else { b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); track(false, p, "raciocinio"); p.querySelector("#fb").textContent = "Olhe de novo, um por um."; say("Olhe de novo, um por um."); }
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; padrao(p, setSpeak); };
+    setSpeak(() => say("Olhe a fila. Qual vem depois?")); say("Olhe a fila. Qual vem depois?");
+  }
+
+  // ---------- Fora da tela ----------
+  function fora() {
+    shell("fora", ["Missão"], (tab, p, setSpeak) => {
+      let m = rand(MISSIONS);
+      const draw = () => {
+        p.innerHTML = `<div class="mission"><div class="emoji-xl" aria-hidden="true">${m.e}</div><p class="tongue">${m.t}</p></div>
+          <div class="row"><button class="btn" id="goout">Vou fazer! Guardar a tela</button><button class="btn soft" id="other">Outra missão</button></div>
+          <p class="hint">Ao tocar em “Vou fazer”, a tela fica parada até a criança voltar.</p>`;
+        setSpeak(() => say(m.t)); say("Sua missão: " + m.t);
+        p.querySelector("#other").onclick = () => { m = rand(MISSIONS.filter(x => x !== m)); draw(); };
+        p.querySelector("#goout").onclick = () => {
+          say("Pode ir! Volte quando terminar.");
+          const r = h(`<div class="rest" role="dialog" aria-label="Missão em andamento"><div class="inner">
+            <div class="emoji-xl" aria-hidden="true">${m.e}</div><h2>Pode ir! A tela vai esperar você.</h2><p class="hint">${m.t}</p>
+            <button class="btn" style="background:var(--sun)">Voltei, terminei!</button></div></div>`);
+          r.querySelector("button").onclick = () => { r.remove(); star("fora"); const pr = rand(praise); say(pr + " Missão cumprida!"); p.insertAdjacentHTML("beforeend", `<div class="feedback">${pr} Missão cumprida! ⭐</div>`); };
+          document.body.appendChild(r); r.querySelector("button").focus();
+          cleanup = () => r.remove();
+        };
+      };
+      draw();
+    });
+  }
+
+  // ---------- Calma ----------
+  function calma() {
+    shell("calma", ["Respirar"], (tab, p, setSpeak) => {
+      let on = false, t = null, rounds = 0;
+      p.innerHTML = `<p class="hint">Quando a bola crescer, cheire a flor. Quando diminuir, sopre a vela.</p>
+        <div class="breath" id="ball">Pronto?</div>
+        <div class="row"><button class="btn" id="tog">Começar</button></div>
+        <div class="feedback" id="fb"></div>`;
+      const ball = p.querySelector("#ball"), tog = p.querySelector("#tog");
+      const cycle = (inhale) => {
+        ball.classList.toggle("in", inhale);
+        ball.textContent = inhale ? "🌸 Cheire a flor" : "🕯️ Sopre a vela";
+        say(inhale ? "Cheire a flor" : "Sopre a vela", 0.7);
+        if (!inhale) { rounds++; if (rounds === 5) { star("calma"); p.querySelector("#fb").textContent = "5 respirações. Muito bem!"; } }
+        t = setTimeout(() => cycle(!inhale), 4500);
+      };
+      const stop = () => { on = false; clearTimeout(t); ball.classList.remove("in"); ball.textContent = "Pronto?"; tog.textContent = "Começar"; };
+      tog.onclick = () => { if (on) return stop(); on = true; rounds = 0; tog.textContent = "Parar"; cycle(true); };
+      cleanup = stop;
+      setSpeak(() => say("Quando a bola crescer, cheire a flor. Quando diminuir, sopre a vela."));
+    });
+  }
+
+  // ---------- Pais ----------
+  function pais() {
+    app.innerHTML = topBar("Para os pais", true) + `<section class="screen t-sage">
+      <h2>👨‍👩‍👧 Para os pais e cuidadores</h2>
+      <div class="panel">
+        <div class="prose">
+          <h3>Progresso neste aparelho</h3>
+          <div class="progress">${AREAS.map(a => `<div><small>${a.n}</small><b>${S.stars[a.id] || 0} ⭐</b></div>`).join("")}</div>
+        </div>
+        <div class="prose">
+          <h3>Evolução</h3>
+          <div class="progress">${Object.keys(SKILLS).map(k => `<div><small>${SKILLS[k].e} ${SKILLS[k].n}</small><b>nível ${skLv(k)}</b></div>`).join("")}</div>
+          <div class="row" style="justify-content:flex-start"><button class="btn" data-go="relatorio">Ver relatório completo</button><button class="btn soft" data-go="avaliar">Desafio das estrelas</button></div>
+          ${S.level ? `<div class="note"><b>O que muitas crianças de ${LV().age} já fazem:</b><ul>${LV().expect.map(x => `<li>${x}</li>`).join("")}</ul><p style="margin-top:8px">Cada criança tem o seu ritmo, e crianças autistas ou com aprendizado mais lento podem chegar lá por outro caminho. Use isto como direção, nunca como cobrança.</p></div>` : ""}
+        </div>
+        ${(() => { const hard = Object.entries(S.words).filter(([, r]) => r.miss > r.ok).sort((x, y) => y[1].miss - x[1].miss).slice(0, 12);
+          return hard.length ? `<div class="prose"><h3>Palavras para treinar</h3><p class="hint">Palavras em que a criança precisou de ajuda na leitura. Toque para ouvir.</p><div class="row" style="justify-content:flex-start">${hard.map(([w]) => `<button class="tab" data-say="${w}">${w}</button>`).join("")}</div></div>` : ""; })()}
+        <div class="prose">
+          <h3>Como usar no dia a dia</h3>
+          <ul>
+            <li><b>Pouco e sempre:</b> 10 a 15 minutos por dia funcionam melhor que uma hora no fim de semana.</li>
+            <li><b>Mesmo horário:</b> crianças autistas costumam se sentir seguras com rotina. Avise antes: “depois do lanche é hora do Passinho”.</li>
+            <li><b>Elogie o esforço,</b> não só o acerto: “você tentou de novo, que legal”.</li>
+            <li><b>Termine numa vitória:</b> encerre com algo que a criança já faz bem.</li>
+            <li><b>Use as missões:</b> a cada atividade na tela, faça uma missão fora dela.</li>
+            <li><b>Fale junto:</b> no treino da fala, repita junto com a criança, olhando para o rosto dela ou para o espelho.</li>
+            <li><b>Respeite sinais de cansaço:</b> agitação, olhar distante ou choro pedem pausa. O Cantinho da calma ajuda.</li>
+          </ul>
+        </div>
+        <div class="settings">
+          <h3>Ajustes</h3>
+          <label class="setting" for="nm"><span>Nome da criança</span><input id="nm" type="text" maxlength="20" value="${(S.name || "").replace(/"/g, "&quot;")}" style="font:inherit;min-height:44px;padding:0 10px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink)"></label>
+          <label class="setting" for="ag"><span>Idade (usada nas histórias)</span><select id="ag"><option value="">Escolher</option>${[3,4,5,6,7,8,9,10,11,12].map(n => `<option value="${n}">${n} anos</option>`).join("")}</select></label>
+          <div class="setting"><span>Respostas guardadas para as histórias de dormir${Object.keys(S.bed.facts).length ? ": " + Object.values(S.bed.facts).join(", ").replace(/</g, "&lt;") : " (nenhuma ainda)"}</span><button class="btn soft" id="forget">Apagar</button></div>
+          <label class="setting" for="lim"><span>Tempo de uso por dia</span><select id="lim">${[[15,"15 minutos"],[20,"20 minutos"],[30,"30 minutos"],[45,"45 minutos"],[60,"1 hora"],[0,"Sem limite"]].map(([v,t]) => `<option value="${v}" ${S.limit.mins === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+          <label class="setting" for="bf"><span>Hora de dormir fora da conta do tempo</span><input id="bf" type="checkbox" ${S.limit.bedFree ? "checked" : ""} style="width:28px;height:28px"></label>
+          <div class="setting"><span>Hoje: ${Math.round(usage().secs / 60)} min usados${usage().extra ? `, ${usage().extra} min extras liberados` : ""}</span><button class="btn soft" id="newpin">Trocar senha</button></div>
+          <label class="setting" for="vo"><span>Voz ligada</span><input id="vo" type="checkbox" ${S.voice ? "checked" : ""} style="width:28px;height:28px"></label>
+          <label class="setting" for="rt"><span>Velocidade da voz</span><select id="rt"><option value="0.7">Bem devagar</option><option value="0.85">Devagar</option><option value="1">Normal</option></select></label>
+          <label class="setting" for="sz"><span>Tamanho do texto</span><select id="sz"><option value="1">Normal</option><option value="1.15">Grande</option><option value="1.3">Bem grande</option></select></label>
+          <label class="setting" for="cm"><span>Sem animações</span><input id="cm" type="checkbox" ${S.calm ? "checked" : ""} style="width:28px;height:28px"></label>
+          <div class="row"><button class="btn soft" id="reset">Zerar estrelas</button><span id="resetAsk" hidden><button class="btn" id="resetYes">Sim, zerar</button></span></div>
+        </div>
+        <p class="note"><b>Sobre o microfone:</b> na leitura em voz alta, o navegador (Chrome ou Safari) envia a voz para o serviço de reconhecimento do Google ou da Apple para transformar em texto. O app não grava nem guarda áudio. Sem microfone, um adulto pode marcar a leitura na própria tela.</p>
+        <p class="note">Este app é um apoio para brincar em casa. Ele não faz diagnóstico e não substitui fonoaudiólogo, terapeuta ocupacional, psicopedagogo ou psicólogo. Leve as dúvidas para a equipe que acompanha a criança.</p>
+      </div></section>`;
+    document.getElementById("hear").onclick = () => say("Área dos pais.");
+    const $ = id => document.getElementById(id);
+    app.querySelectorAll("[data-say]").forEach(b => b.onclick = () => say(b.dataset.say, 0.6));
+    $("lim").onchange = e => { S.limit.mins = +e.target.value; save(); };
+    $("bf").onchange = e => { S.limit.bedFree = e.target.checked; save(); };
+    $("newpin").onclick = () => { S.pin = ""; save(); parentUntil = 0; gate(() => go("pais")); };
+    $("rt").value = String(S.rate); $("sz").value = String(S.size);
+    $("nm").oninput = e => { S.name = e.target.value.trim(); save(); };
+    $("ag").value = String(S.age || ""); $("ag").onchange = e => { setAge(+e.target.value, false); go("pais"); };
+    $("forget").onclick = () => { S.bed = { facts: {}, saga: "" }; save(); $("forget").textContent = "Respostas apagadas"; };
+    $("vo").onchange = e => { S.voice = e.target.checked; save(); if (S.voice) say("Voz ligada."); };
+    $("rt").onchange = e => { S.rate = +e.target.value; save(); say("Assim fica a minha voz."); };
+    $("sz").onchange = e => { S.size = +e.target.value; save(); applyPrefs(); };
+    $("cm").onchange = e => { S.calm = e.target.checked; save(); applyPrefs(); };
+    $("reset").onclick = () => { $("resetAsk").hidden = false; };
+    $("resetYes").onclick = () => { S.stars = structuredClone(defaults.stars); save(); go("pais"); };
+  }
+
+  if (S.age) Object.keys(SKILLS).forEach(k => { if (!S.sk[k]) S.sk[k] = S.level || levelFromAge(S.age); });
+  applyPrefs();
+  const start = (location.hash || "").slice(1);
+  go(["numeros", "letras", "leitura", "fala", "cerebro", "fora", "calma", "dormir", "pais", "avaliar", "relatorio"].includes(start) ? start : "splash");
+})();
+</script>
+
+<script>
+  // Guarda o app no aparelho para funcionar sem internet.
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  // Pede ao Android para não apagar os dados do app (progresso, relatórios).
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+</script>
+</body>
+</html>
