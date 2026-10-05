@@ -229,6 +229,9 @@ body.night {
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .t-night { --tone-soft: #29335a; } }
 :root[data-theme="dark"] .t-night { --tone-soft: #29335a; }
 .story-line { font-size: 1.45em; line-height: 1.7; max-width: 30ch; text-align: left; }
+.tale { display: grid; gap: 14px; width: 100%; justify-items: start; }
+.tale .story-line.past { opacity: .45; font-size: 1.15em; }
+.tale-ctl { margin-top: 8px; }
 .story-line .you { color: var(--sun); font-weight: 700; }
 .answer { display: grid; gap: 12px; justify-items: center; width: 100%; }
 .answer input { font: inherit; font-size: 1.15em; min-height: 56px; width: min(100%, 360px); padding: 0 16px; border-radius: 16px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); }
@@ -549,7 +552,7 @@ body.night {
     let done = false; const fin = () => { if (!done) { done = true; cb && cb(); } };
     if (!("speechSynthesis" in window)) { setTimeout(fin, 300); return; }
     try { speechSynthesis.cancel(); const u = speakWith(text, rate, ptVoice); u.onend = fin; u.onerror = fin; speechSynthesis.speak(u); } catch (e) { fin(); }
-    setTimeout(fin, 1800 + text.length * 120);
+    setTimeout(fin, 1800 + text.length * 110 / Math.min(1, effRate(rate)));
   };
   const LETTER_NAME = { A: "á", B: "bê", C: "cê", D: "dê", E: "é", F: "éfe", G: "gê", H: "agá", I: "í", J: "jota", K: "cá", L: "éle", M: "ême", N: "êne", O: "ó", P: "pê", Q: "quê", R: "érre", S: "ésse", T: "tê", U: "ú", V: "vê", W: "dáblio", X: "xis", Y: "ípsilon", Z: "zê",
     "Ç": "cê cedilha", "Ã": "á com til", "Õ": "ó com til", "Á": "á com acento", "É": "é com acento", "Í": "í com acento", "Ó": "ó com acento", "Ú": "ú com acento", "Â": "â com chapéu", "Ê": "ê com chapéu", "Ô": "ô com chapéu" };
@@ -1287,9 +1290,9 @@ body.night {
 
   // ---------- Vamos conversar ----------
   const cleanSaid = v => String(v || "").trim()
-    .replace(/^(eu\s+)?(acho\s+que\s+)?(gosto\s+mais\s+|gosto\s+|adoro\s+|amo\s+|prefiro\s+|quero\s+|iria\s+(pra|para)\s+|vou\s+(pra|para)\s+)(de\s+|do\s+|da\s+|dos\s+|das\s+|brincar\s+de\s+)?/i, "")
+    .replace(/^(eu\s+)?(acho\s+que\s+)?(gosto\s+mais\s+|gosto\s+|adoro\s+|amo\s+|prefiro\s+|quero\s+|iria\s+(pra|para)\s+|vou\s+(pra|para)\s+|vou\s+levar\s+|levo\s+|levaria\s+|vou\s+chamar\s+(ele\s+|ela\s+)?de\s+|vou\s+dar\s+)(de\s+|do\s+|da\s+|dos\s+|das\s+|brincar\s+de\s+)?/i, "")
     .replace(/^(a\s+minha|o\s+meu|minha|meu)(\s+\S+)?(\s+(favorit[ao]|preferid[ao]))?\s+(e|é)\s+/i, "")
-    .replace(/^(e|é)\s+(o|a)\s+/i, "").replace(/^(o|a)\s+nome\s+(e|é)\s+/i, "").replace(/[.!?]+$/, "").slice(0, 30).trim();
+    .replace(/^(e|é)\s+(o|a)\s+/i, "").replace(/^(o|a)\s+nome\s+(dele\s+|dela\s+)?(e|é)\s+/i, "").replace(/^(ele|ela)\s+se\s+chama\s+/i, "").replace(/^(era|é|e)\s+(um|uma)\s+/i, m => m.replace(/^(era|é|e)\s+/i, "")).replace(/[.!?]+$/, "").slice(0, 30).trim();
   const capFirst = s => s ? s[0].toUpperCase() + s.slice(1) : s;
   const TALK = [
     { k: "cor", q: "Qual é a sua cor favorita?", chips: ["Azul", "Rosa", "Verde", "Amarelo", "Roxo"], r: v => `${v}! Que cor bonita. O que tem da cor ${v.toLowerCase()} perto de você agora?`, r2: () => "Que legal! Você é muito observadora." },
@@ -1413,7 +1416,7 @@ body.night {
   // Biblioteca de histórias (funciona sem internet). Formato: [id, emoji, título, resumo, linhas].
   // Linha de texto: "..." · linha só para 7 anos ou mais: "+ ..." · pergunta: ["?", chave, pergunta, [opções]].
   // Chaves de nome próprio mantêm a maiúscula; as outras entram em minúscula e sem artigo no começo.
-  const PROPER = ["amigo", "pessoa", "nomeBicho", "musica", "escola", "nomeCastelo", "torcida", "ajuda", "ideia", "pergunta"], STRIP = ["animal", "brincadeira", "vagao"];
+  const PROPER = ["amigo", "pessoa", "nomeBicho", "musica", "escola", "nomeCastelo", "torcida", "ajuda", "ideia", "pergunta", "nomeCompanheiro", "nomeCoruja", "nomeMenina"], STRIP = ["animal", "brincadeira", "vagao"];
   const LIB = [
     ["dino", "🦕", "O dinossauro com medo do escuro", "Ajude um dinossauro a dormir", [
       "{nome} estava no quintal quando ouviu um barulhinho atrás da árvore.",
@@ -1697,10 +1700,196 @@ body.night {
     const [, k, q, chips] = l;
     return { q, k, chips, map: (v, A) => {
       if (/^(ningu[eé]m|ainda n)/i.test(v)) { A[k] = k === "escola" ? "a escola" : "um amigo imaginário"; return; }
-      A[k] = PROPER.includes(k) ? v : STRIP.includes(k) ? low(v).replace(/^(um|uma|o|a|os|as)\s+/i, "") : low(v);
+      A[k] = normFact(k, v);
     } };
   };
+  // Mesma forma de escrever a resposta, seja ela nova ou lembrada de outra noite.
+  const normFact = (k, v) => {
+    if (PROPER.includes(k)) return v;
+    if (STRIP.includes(k)) return low(v).replace(/^(um|uma|o|a|os|as)\s+/i, "");
+    if (k === "companheiro") { v = low(v); return /^(um|uma|o|a)\s/.test(v) ? v.replace(/^o\s/, "um ").replace(/^a\s/, "uma ") : "um " + v; }
+    return low(v);
+  };
   LIB.forEach(([id, e, n, d, lines]) => STORIES.push({ id, e, n, d, steps: lines.map(libStep) }));
+  // "A grande viagem": uma aventura em capítulos, um por noite. As respostas de um capítulo voltam nos seguintes.
+  const SAGA_DEFAULTS = { companheiro: "um coelho", nomeCompanheiro: "Pipoca", levar: "uma lanterna", nomeCoruja: "Lulu", corEstrela1: "dourada", lanche: "morangos", musica: "Brilha, brilha, estrelinha", agradecer: "com um abraço", alegrar: "soltar pipa", soprar: "comprido", corEstrela3: "lilás", nomeMenina: "Clarinha", desejo: "que ninguém fique triste", corLanterna: "de todas as cores", nomeCastelo: "Castelo Brilhante", qualidade: "ajudar os outros", melhorParte: "a aventura inteira", tchau: "com um abraço", pista: "seguindo as pegadas" };
+  const SAGA_LINES = [
+    ["🗺️", "O mapa que brilhava", "Um mapa mágico e um companheiro de viagem", [
+      "Esta é a primeira noite de uma grande aventura. E quem vai viver essa aventura é {nome}.",
+      "{nome} tinha {idade} anos e estava quase dormindo quando viu uma luz azulzinha piscando perto da janela.",
+      "Era um papel dobrado, velhinho, que brilhava como vaga-lume.",
+      "{nome} abriu o papel devagar. Era um mapa! Um mapa cheio de desenhos: uma floresta, um rio, uma montanha, uma cidade de lanternas e, lá no alto, um castelo de estrelas.",
+      "No cantinho do mapa estava escrito, com letra caprichada: Para {nome}, a criança mais gentil desta rua.",
+      "+ {nome} leu de novo, bem baixinho, só para ter certeza. O nome estava ali mesmo.",
+      "De repente, alguém bateu de leve no vidro da janela. Toc, toc, toc.",
+      ["?", "companheiro", "Era um bichinho que ia ser seu companheiro de viagem. Que bicho era?", ["Um coelho", "Um cachorro", "Um gato", "Uma raposa"]],
+      "Era {companheiro}! O bichinho tinha olhos brilhantes, uma mochila pequenininha nas costas e um sorriso enorme.",
+      ["?", "nomeCompanheiro", "Que nome você quer dar para o seu companheiro de viagem?", ["Pipoca", "Floquinho", "Biscoito", "Estrela"]],
+      "— {nomeCompanheiro}! Que nome lindo — disse o bichinho, pulando de alegria. — Eu vim buscar você. O mapa só brilha para quem tem um coração bom.",
+      "{nomeCompanheiro} explicou que o Castelo das Estrelas estava ficando apagadinho. Para ele voltar a brilhar, era preciso juntar cinco estrelas, e cada estrela só aparece quando alguém faz um gesto de carinho.",
+      "— E o mapa escolheu você para essa missão — disse {nomeCompanheiro}.",
+      "+ {nome} sentiu uma coisa quentinha no peito. Era vontade de ajudar.",
+      ["?", "levar", "Antes de sair, o que você vai colocar na mochila para a viagem?", ["Uma lanterna", "Um lanchinho", "Um cobertor", "Meu brinquedo favorito"]],
+      "Boa escolha! {nome} colocou {levar} na mochila, bem no fundinho.",
+      "Então o mapa fez uma coisa mágica: ele se desenrolou no chão e virou um tapete macio e brilhante.",
+      "{nome} e {nomeCompanheiro} sentaram no tapete. Ele subiu devagarinho, devagarinho, e saiu flutuando pela janela.",
+      "Lá embaixo, as casas estavam com as luzes apagadas. Todo mundo dormia. Só a lua estava acordada, olhando os dois passarem.",
+      "+ O vento fazia cócegas no rosto de {nome}, e {nomeCompanheiro} ria baixinho.",
+      "O tapete pousou bem na beirinha de uma floresta. As árvores eram altas e as folhas balançavam devagar, como se estivessem respirando.",
+      "— Amanhã a gente entra na Floresta dos Sussurros — disse {nomeCompanheiro}, bocejando. — Hoje, vamos descansar.",
+      "{nome} deitou no tapete macio, olhou as estrelas e respirou fundo: puxa o ar... e solta.",
+      "E assim termina o primeiro capítulo. Amanhã, a aventura continua." ]],
+    ["🌳", "A Floresta dos Sussurros", "Ajudar uma corujinha a voltar para casa", [
+      "Lembra da nossa aventura? Na noite passada, {nome} encontrou um mapa mágico e conheceu {nomeCompanheiro}, seu companheiro de viagem.",
+      "Hoje, os dois acordaram na beirinha da Floresta dos Sussurros, com o sol nascendo cor de laranja.",
+      "{nome} conferiu a mochila: {levar} estava lá, no lugar certinho.",
+      "Eles entraram na floresta. As árvores eram tão altas que pareciam tocar as nuvens.",
+      "E as folhas falavam! Mas falavam bem baixinho: shhh... shhh... Era por isso que o lugar se chamava Floresta dos Sussurros.",
+      "+ {nome} encostou a orelha num tronco e ouviu a árvore dizer: — Que bom que você chegou.",
+      "No meio do caminho, eles ouviram um choro fininho: uuu... uuu...",
+      "Era uma corujinha, sentada num galho baixo. Ela tinha se perdido da mamãe coruja.",
+      "— Eu saí para ver a lua e esqueci o caminho de casa — disse a corujinha, com os olhos cheios de água.",
+      ["?", "nomeCoruja", "Como se chama a corujinha?", ["Lulu", "Pituca", "Bebel", "Nina"]],
+      "— Não fica triste, {nomeCoruja} — disse {nome}. — A gente ajuda você a voltar para casa.",
+      "{nomeCoruja} contou que a casa dela ficava na árvore mais velha da floresta, aquela que tem uma porta redonda no tronco.",
+      ["?", "pista", "Como vocês vão procurar a árvore mais velha?", ["Seguindo as pegadas", "Perguntando para as árvores", "Subindo bem alto", "Ouvindo o canto da mamãe coruja"]],
+      "Que boa ideia: {pista}! E foi assim que eles fizeram.",
+      "Andaram devagar, olhando tudo com atenção. Viram cogumelos vermelhos, uma lagarta dormindo e uma flor que brilhava no escuro.",
+      "+ {nomeCompanheiro} contou os cogumelos: um, dois, três, quatro, cinco. {nome} contou junto.",
+      "Até que, lá no fundo, apareceu uma árvore enorme, com o tronco cheio de musgo verde e uma portinha redonda.",
+      "Na porta estava a mamãe coruja, olhando para todos os lados, preocupada.",
+      "— {nomeCoruja}! — ela chamou, e abriu as asas para um abraço bem grande.",
+      "A mamãe coruja agradeceu tanto, mas tanto, que uma estrelinha caiu do céu e pousou na mão de {nome}.",
+      "— Essa é a primeira estrela do Castelo — explicou {nomeCompanheiro}. — Ela apareceu porque você ajudou.",
+      ["?", "corEstrela1", "De que cor era essa estrela?", ["Dourada", "Azul", "Cor-de-rosa", "Prateada"]],
+      "A estrela {corEstrela1} piscou e foi guardada na mochila, ao lado de {levar}.",
+      "A noite chegou na floresta. As árvores cantaram uma canção de ninar bem baixinha: shhh... shhh...",
+      "{nome} e {nomeCompanheiro} deitaram embaixo da árvore velha, com {nomeCoruja} cuidando do sono deles lá de cima.",
+      "Fim do segundo capítulo. Amanhã, eles vão encontrar um rio que canta." ]],
+    ["🐢", "O rio que cantava", "Atravessar o rio com a Dona Tartaruga", [
+      "Na noite passada, {nome} e {nomeCompanheiro} ajudaram a corujinha {nomeCoruja} a voltar para casa e ganharam uma estrela {corEstrela1}.",
+      "Hoje, o mapa mostrava o próximo caminho: um rio azul, cheio de curvas, igual a uma fita.",
+      "Quando chegaram perto, ouviram uma música. Era a água! Plim, plom, plim. O rio cantava enquanto corria.",
+      "+ {nome} fechou os olhos para ouvir melhor. Parecia uma caixinha de música.",
+      "Mas tinha um problema: a ponte estava quebrada, e o rio era largo demais para atravessar.",
+      "Foi aí que uma tartaruga bem grande colocou a cabeça para fora da água. — Bom dia! Eu sou a Dona Tartaruga. Posso levar vocês nas minhas costas.",
+      "— Mas eu estou com tanta fome... Faz dias que eu não como nada gostoso — disse ela.",
+      ["?", "lanche", "O que vocês podem dar para a Dona Tartaruga comer?", ["Uma folha de alface", "Morangos", "Uma maçã", "Bolo de cenoura"]],
+      "Dona Tartaruga comeu {lanche} devagarinho, bem devagarinho, como toda tartaruga come. — Hum, que delícia! Obrigada!",
+      "Então {nome} e {nomeCompanheiro} subiram no casco dela, que era duro e quentinho de sol.",
+      "A tartaruga nadou bem devagar. A água fazia plim, plom, e uns peixinhos coloridos vieram nadar do lado.",
+      ["?", "musica", "O rio pediu para vocês cantarem junto com ele. Que música vocês cantaram?", ["Brilha, brilha, estrelinha", "Ciranda, cirandinha", "Uma música inventada", "A dona aranha"]],
+      "Eles cantaram {musica}, e o rio cantou junto. Até os peixinhos pularam para fora da água, dançando.",
+      "+ {nomeCompanheiro} cantava meio desafinado, e todo mundo riu junto, bem feliz.",
+      "Do outro lado do rio, Dona Tartaruga sorriu: — Faz muito tempo que ninguém cantava comigo. Obrigada pela companhia.",
+      "E quando ela disse obrigada, uma bolha de água subiu do rio, brilhou e virou uma estrela.",
+      "Era a segunda estrela do Castelo! Ela tinha um brilho azul, igualzinho ao rio.",
+      "{nome} guardou a estrela azul na mochila, junto com a estrela {corEstrela1}. Agora já eram duas.",
+      ["?", "agradecer", "Como você quer se despedir da Dona Tartaruga?", ["Com um abraço", "Com um beijo no casco", "Dando tchau", "Com uma música"]],
+      "{nome} se despediu da Dona Tartaruga {agradecer}, e ela foi nadando devagar, sorrindo.",
+      "O sol foi descendo e o rio começou a cantar mais baixinho, uma canção de ninar.",
+      "{nome} e {nomeCompanheiro} se deitaram na grama macia da beira do rio. O rio cantava: plim... plom... plim...",
+      "E, com essa música, os olhos de {nome} foram fechando devagar.",
+      "Fim do terceiro capítulo. Amanhã, a viagem segue para a Montanha dos Ventos." ]],
+    ["⛰️", "A Montanha dos Ventos", "Alegrar o Vento que estava triste", [
+      "Até agora, {nome} já ajudou a corujinha {nomeCoruja} e a Dona Tartaruga, e já tem duas estrelas na mochila.",
+      "Hoje, o mapa mostrava uma montanha alta, com o topo coberto de nuvens branquinhas.",
+      "{nome} e {nomeCompanheiro} começaram a subir. O caminho era de pedrinhas e fazia crec, crec embaixo dos pés.",
+      "+ No meio da subida, eles pararam para beber água e olhar a paisagem. Lá de cima dava para ver o rio e a floresta, bem pequenininhos.",
+      "Quanto mais subiam, mais o vento soprava. Mas era um vento diferente... ele soprava e suspirava: aaai... aaai...",
+      "Lá no topo morava o Vento. Ele estava sentado numa nuvem, com uma cara muito triste.",
+      "— O que aconteceu? — perguntou {nome}.",
+      "— Eu sopro, sopro, e ninguém brinca comigo — disse o Vento. — As pipas foram embora e os cataventos pararam de girar.",
+      ["?", "alegrar", "O que vocês podem fazer para alegrar o Vento?", ["Soltar pipa", "Fazer bolhas de sabão", "Contar uma piada", "Dar um abraço"]],
+      "Que ideia legal! {nome} e {nomeCompanheiro} resolveram: {alegrar}!",
+      "O Vento ficou curioso. Ele soprou de leve, bem de leve, só para ver o que ia acontecer.",
+      "E deu tão certo que ele começou a rir. Uma risada fresquinha, que balançou todas as flores da montanha.",
+      "+ {nomeCompanheiro} rolou na grama de tanto rir também.",
+      ["?", "soprar", "O Vento quer brincar com você. Puxe o ar pelo nariz e sopre devagar. Como foi o seu sopro?", ["Fraquinho", "Forte", "Comprido", "Bem devagar"]],
+      "Que sopro {soprar}! O Vento achou lindo e soprou igualzinho.",
+      "Os dois sopraram juntos, várias vezes: puxa o ar... e solta. Puxa o ar... e solta.",
+      "O Vento ficou tão feliz que deu uma volta inteira na montanha, assobiando uma música.",
+      "Quando ele voltou, trouxe nas mãos uma coisa brilhante: a terceira estrela do Castelo!",
+      ["?", "corEstrela3", "Essa estrela tem a cor que você escolher. De que cor ela era?", ["Branquinha", "Lilás", "Verde", "Laranja"]],
+      "A estrela {corEstrela3} foi para a mochila. Já eram três estrelas!",
+      "— Agora eu vou sempre lembrar de você quando eu soprar — disse o Vento. — E à noite vou soprar bem fraquinho, para você dormir.",
+      "Ele fez uma cama de nuvem para {nome} e {nomeCompanheiro} descansarem, macia como algodão.",
+      "O Vento cantou baixinho: fiu... fiu... e a noite foi chegando com calma.",
+      "Fim do quarto capítulo. Amanhã, eles vão chegar na Cidade das Lanternas." ]],
+    ["🏮", "A Cidade das Lanternas", "Um desejo bonito acende a cidade", [
+      "Lembra? Na noite passada, {nome} alegrou o Vento lá no alto da montanha e ganhou a terceira estrela.",
+      "Hoje, o Vento soprou de leve e levou o tapete mágico montanha abaixo, até uma cidade diferente de todas.",
+      "Era a Cidade das Lanternas. As casas eram redondas, as ruas eram de pedrinhas coloridas, e em cada janela tinha uma lanterna.",
+      "Mas as lanternas estavam apagadas. A cidade estava toda escurinha, e as pessoas estavam caladas.",
+      "Uma menininha de tranças chegou perto. — Hoje é a nossa festa — disse ela. — Mas as lanternas só acendem quando alguém conta um desejo bonito.",
+      ["?", "nomeMenina", "Como se chama essa menininha?", ["Clarinha", "Bia", "Mel", "Luna"]],
+      "— Prazer, {nomeMenina}! — disse {nome}. — Eu tenho um desejo bonito para contar.",
+      ["?", "desejo", "Qual é o seu desejo bonito?", ["Que todo mundo tenha amigos", "Que ninguém fique triste", "Que os bichos sejam felizes", "Que minha família tenha saúde"]],
+      "{nome} falou bem alto: — Eu desejo {desejo}!",
+      "E então aconteceu uma coisa mágica: a primeira lanterna acendeu! Depois outra, e mais outra, e mais outra.",
+      ["?", "corLanterna", "De que cor eram as lanternas?", ["Amarelas", "Vermelhas", "De todas as cores", "Azuis"]],
+      "Em pouquinho tempo, a cidade inteira estava cheia de lanternas {corLanterna}, brilhando como um céu de estrelas no chão.",
+      "+ {nomeCompanheiro} ficou tão encantado que até esqueceu de piscar.",
+      "As pessoas saíram de casa, felizes. Começou uma música, e todo mundo dançou em roda: {nome}, {nomeCompanheiro}, {nomeMenina} e a cidade inteira.",
+      "Teve pipoca, teve suco de uva e teve um bolo enorme, com cobertura de chocolate.",
+      "+ {nome} comeu um pedaço pequeno, devagarinho, sentindo o gosto doce.",
+      "No fim da festa, {nomeMenina} trouxe uma caixinha de presente. Dentro dela, brilhando, estava a quarta estrela do Castelo.",
+      "— Essa estrela nasceu do seu desejo — disse ela. — Ela é a mais quentinha de todas.",
+      "Agora a mochila tinha quatro estrelas: a {corEstrela1}, a azul, a {corEstrela3} e a estrela do desejo.",
+      "Faltava só uma. E o mapa mostrava que ela estava lá no alto, no Castelo das Estrelas.",
+      "As lanternas foram diminuindo a luz, devagar, para a cidade dormir.",
+      "{nome} e {nomeCompanheiro} dormiram numa casinha redonda, com uma lanterna fraquinha na janela cuidando deles.",
+      "Fim do quinto capítulo. Amanhã, eles vão subir até o Castelo das Estrelas." ]],
+    ["🏰", "O Castelo das Estrelas", "A última estrela está dentro de você", [
+      "Nas últimas noites, {nome} e {nomeCompanheiro} juntaram quatro estrelas: da floresta, do rio, da montanha e da cidade.",
+      "Hoje era o grande dia. O tapete mágico subiu, subiu, passou pelas nuvens e chegou pertinho do céu.",
+      "Lá estava o Castelo das Estrelas. Ele era enorme, feito de luz, mas estava fraquinho, quase apagado.",
+      "Na porta, uma senhora de vestido azul-escuro esperava sorrindo. Era a Rainha da Noite.",
+      "— Eu sabia que você vinha, {nome} — disse a Rainha. — O mapa nunca erra.",
+      ["?", "nomeCastelo", "O castelo pode ganhar um nome novo. Que nome você dá para o castelo?", ["Castelo Brilhante", "Castelo do Sono", "Castelo da Alegria", "Castelo Arco-Íris"]],
+      "— {nomeCastelo}! — repetiu a Rainha. — Que nome perfeito.",
+      "{nome} abriu a mochila e tirou as estrelas, uma por uma.",
+      "A estrela {corEstrela1}, da corujinha {nomeCoruja}, subiu e acendeu a torre da esquerda.",
+      "A estrela azul, da Dona Tartaruga, acendeu a torre da direita.",
+      "A estrela {corEstrela3}, do Vento, acendeu o telhado.",
+      "E a estrela do desejo, da cidade de {nomeMenina}, acendeu a porta grande.",
+      "O castelo começou a brilhar, mas ainda faltava uma luz, bem no meio, no coração do castelo.",
+      "— A última estrela não está na mochila — explicou a Rainha. — Ela está dentro de você.",
+      ["?", "qualidade", "O que você tem de bonito no coração? O que você sabe fazer de bom?", ["Ajudar os outros", "Fazer carinho", "Fazer amigos", "Ter coragem"]],
+      "{nome} pensou com calma e respondeu: {qualidade}.",
+      "Na mesma hora, uma luz quentinha saiu do peito de {nome}, voou até o meio do castelo e virou a estrela mais bonita de todas.",
+      "O {nomeCastelo} acendeu inteirinho! Ficou tão brilhante que dava para ver lá da Terra.",
+      "+ Lá embaixo, a corujinha, a tartaruga, o Vento e a Cidade das Lanternas olharam para o céu e bateram palmas.",
+      "A Rainha da Noite deu um abraço em {nome} e em {nomeCompanheiro}. — Obrigada. Agora, toda criança do mundo vai ter estrelas para olhar antes de dormir.",
+      "Ela deu para {nome} um presente: um pozinho de estrela, para guardar no bolso do pijama.",
+      "Naquela noite, {nome} dormiu numa cama de nuvem dentro do castelo, ouvindo as estrelas cantarem baixinho.",
+      "Fim do sexto capítulo. Amanhã é o último: a volta para casa." ]],
+    ["🏡", "A volta para casa", "O último capítulo da grande viagem", [
+      "Que aventura! {nome} e {nomeCompanheiro} acenderam o {nomeCastelo}, e agora o céu está cheio de estrelas de novo.",
+      "Hoje, a Rainha da Noite disse: — Está na hora de voltar para casa. Sua cama está esperando.",
+      "{nome} sentou no tapete mágico com {nomeCompanheiro}. O tapete desceu bem devagar, como uma folha caindo.",
+      "No caminho, eles passaram pela Cidade das Lanternas. {nomeMenina} acenou da janela, e as lanternas piscaram, dizendo tchau.",
+      "Passaram pela Montanha dos Ventos. O Vento soprou um beijo fresquinho no rosto de {nome}.",
+      "Passaram pelo rio que cantava. A Dona Tartaruga levantou a cabeça e cantou {musica} mais uma vez.",
+      "E passaram pela Floresta dos Sussurros, onde {nomeCoruja} e a mamãe coruja diziam, bem baixinho: shhh... boa noite...",
+      ["?", "melhorParte", "Qual foi a parte da aventura de que você mais gostou?", ["A floresta e a corujinha", "O rio e a tartaruga", "A montanha e o Vento", "A cidade das lanternas", "O castelo"]],
+      "{nome} contou: — Eu gostei muito de {melhorParte}!",
+      "{nomeCompanheiro} sorriu: — Eu também. Mas a minha parte preferida foi viajar com você.",
+      "Logo apareceu a rua de {nome}, com as casas dormindo e a lua acordada, igualzinho na primeira noite.",
+      "O tapete entrou pela janela e pousou bem em cima da cama.",
+      "E, num piscar de olhos, ele virou mapa de novo: um papel velhinho, dobrado, quietinho.",
+      "{nomeCompanheiro} deu um bocejo enorme. — Eu vou ficar morando no mapa — disse. — Sempre que você quiser, é só abrir, e a gente viaja de novo.",
+      ["?", "tchau", "Como você quer dar boa noite para {nomeCompanheiro}?", ["Com um abraço", "Com um beijo", "Dando tchau", "Dizendo eu te amo"]],
+      "{nome} deu boa noite {tchau}, e {nomeCompanheiro} entrou no mapa, deixando um brilhinho no papel.",
+      "{nome} guardou o mapa embaixo do travesseiro e colocou o pozinho de estrela na mesinha.",
+      "Lá fora, o céu estava cheio de estrelas. Bem no meio delas, o {nomeCastelo} brilhava, só para {nome}.",
+      "+ E, se você olhar bem, vai ver uma estrelinha {corEstrela1} piscando. É a corujinha {nomeCoruja} dizendo obrigada.",
+      "{nome} respirou fundo: puxa o ar... e solta. Puxa o ar... e solta.",
+      "E foi dormir sabendo que é uma criança corajosa, gentil e muito, muito especial.",
+      "Fim da grande viagem de {nome}. Quando quiser, a aventura pode começar de novo." ]]
+  ];
+  const SAGA = SAGA_LINES.map(([e, n, d, lines], i) => ({ id: "saga" + (i + 1), ch: i, e, n: `A grande viagem · Capítulo ${i + 1}: ${n}`, d, defaults: SAGA_DEFAULTS, steps: lines.map(libStep) }));
+
 
   const fill = (t, A) => t.replace(/\{(\w+)\}/g, (_, k) => A[k] ?? "");
   const fillHtml = (t, A) => t.replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c])
@@ -1744,7 +1933,7 @@ body.night {
         if (!fresh.length) S.bed.seen = [];
         S.bed.today = { day: today(), id: rand(fresh.length ? fresh : STORIES).id }; save();
       }
-      const tonight = STORIES.find(x => x.id === S.bed.today.id) || STORIES[0];
+      const tonight = SAGA[S.bed.sagaCh || 0];
       const title = st => escapeHtml(fill(st.n, { nome: S.name }));
       p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div>
         <p>Boa noite, <b>${escapeHtml(S.name)}</b>! Hoje você vai ser personagem da história.</p>
@@ -1755,23 +1944,44 @@ body.night {
           <button class="btn soft" id="others">Escolher outra</button>
         </div>
         <div class="story-pick" id="list" hidden>
+          ${SAGA.map((st, i) => `<button data-c="${i}"><b>${st.e} ${title(st)}</b><small>${st.d}${i < (S.bed.sagaCh || 0) ? " · já ouvido" : ""}</small></button>`).join("")}
           ${STORIES.map((st, i) => `<button data-s="${i}"><b>${st.e} ${title(st)}</b><small>${st.d}${S.bed.seen.includes(st.id) ? " · já ouvida" : ""}</small></button>`).join("")}
         </div>
         <button class="linkish" id="who">Mudar nome ou idade</button>`;
       const play = st => { if (!S.bed.seen.includes(st.id)) S.bed.seen.push(st.id); save(); playTemplate(st); };
-      $id("tonight").onclick = () => play(tonight);
+      $id("tonight").onclick = () => playTemplate(tonight);
       $id("others").onclick = () => { $id("list").hidden = !$id("list").hidden; };
       p.querySelectorAll("[data-s]").forEach(b => b.onclick = () => play(STORIES[+b.dataset.s]));
+      p.querySelectorAll("[data-c]").forEach(b => b.onclick = () => playTemplate(SAGA[+b.dataset.c]));
       p.querySelectorAll("[data-new]").forEach(b => b.onclick = () => playLive(b.dataset.new === "2"));
       p.querySelector("#who").onclick = () => gate(() => { go("dormir"); setTimeout(() => { const w = $id("who"); w && w.click(); }, 0); });
       speakNow = () => say(`Boa noite, ${S.name}! A história de hoje é: ${fill(tonight.n, { nome: S.name })}.`, 0.75); speakNow();
     }
 
     // Uma tela por trecho: o texto aparece, é lido devagar, e a criança toca em "Continuar".
+    // A história segue sozinha: cada trecho é lido e o próximo vem logo depois. Dá para pausar ou repetir.
+    let paused = false, runId = 0, curLine = null;
     function showLine(html, plain, next, label) {
-      p.innerHTML = `<p class="story-line">${html}</p><button class="btn" id="go">${label || "Continuar ▸"}</button>`;
-      speakNow = () => say(plain, 0.75); speakNow();
-      p.querySelector("#go").onclick = next; p.querySelector("#go").focus();
+      let box = p.querySelector("#tale");
+      if (!box) {
+        p.innerHTML = `<div class="tale" id="tale"></div><div class="row tale-ctl"><button class="btn soft" id="pz" data-noread>⏸ Pausar</button><button class="btn soft" id="rp" data-noread>🔁 Repetir</button></div>`;
+        box = p.querySelector("#tale");
+        const pz = p.querySelector("#pz");
+        pz.onclick = () => {
+          paused = !paused; pz.textContent = paused ? "▶ Continuar" : "⏸ Pausar";
+          if (paused) { runId++; try { speechSynthesis.cancel(); } catch (e) {} } else curLine && curLine();
+        };
+        p.querySelector("#rp").onclick = () => { paused = false; pz.textContent = "⏸ Pausar"; curLine && curLine(); };
+      }
+      box.querySelectorAll(".story-line").forEach((l, k, all) => { l.classList.add("past"); if (k < all.length - 2) l.remove(); });
+      const el = document.createElement("p"); el.className = "story-line now"; el.innerHTML = html; box.appendChild(el);
+      el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      curLine = () => {
+        const id = ++runId;
+        sayThen(plain, () => { if (id !== runId || paused || !el.isConnected) return; setTimeout(() => { if (id === runId && !paused && el.isConnected) next(); }, label ? 1800 : 900); }, 0.75);
+      };
+      speakNow = () => curLine();
+      if (!paused) curLine();
     }
     // Pergunta com três jeitos de responder: falar, tocar numa opção ou um adulto digitar.
     function ask(qHtml, qPlain, chips, onAnswer) {
@@ -1782,9 +1992,10 @@ body.night {
           ${SR && !micBlocked ? `<button class="mic" id="mic" aria-label="Responder falando">🎤</button><div class="heard" id="heard"></div>` : ""}
           <div class="form-row"><input id="typed" placeholder="Ou escreva aqui" maxlength="40" aria-label="Resposta"><button class="btn soft" id="send">OK</button></div>
         </div>`;
-      speakNow = () => say(qPlain, 0.8); speakNow();
+      speakNow = () => say(qPlain, 0.8);
       let stop = null, done = false;
-      const finish = v => { v = clean(v); if (!v || done) return; done = true; stop && stop(); onAnswer(cap(v)); };
+      sayThen(qPlain, () => { const m = p.querySelector("#mic"); if (m && !done && m.isConnected && !m.classList.contains("on")) m.click(); }, 0.8);
+      const finish = v => { v = clean(cleanSaid(v)); if (!v || done) return; done = true; stop && stop(); onAnswer(cap(v)); };
       p.querySelectorAll(".chip").forEach(b => b.onclick = () => finish(b.textContent));
       p.querySelector("#send").onclick = () => finish(p.querySelector("#typed").value);
       p.querySelector("#typed").onkeydown = e => { if (e.key === "Enter") finish(e.target.value); };
@@ -1800,18 +2011,21 @@ body.night {
     }
 
     function playTemplate(story) {
-      const A = Object.assign({}, S.bed.facts, { nome: S.name, idade: String(S.age) });
+      const A = Object.assign({}, story.defaults || {}, ...Object.entries(S.bed.facts).map(([k, v]) => ({ [k]: normFact(k, v) })), { nome: S.name, idade: String(S.age) });
       const steps = story.steps.filter(s => !s.older || S.age >= 7);
       let i = 0;
       const step = () => {
-        if (i >= steps.length) return goodnight();
+        if (i >= steps.length) {
+          if (story.ch != null) { S.bed.sagaCh = (story.ch + 1) % SAGA.length; save(); }
+          return goodnight(story.ch != null && story.ch + 1 < SAGA.length ? SAGA[story.ch + 1] : null);
+        }
         const s = steps[i++];
         if (s.q) {
           const known = S.bed.facts[s.k]; const chips = known && !s.chips.includes(known) ? [known, ...s.chips] : s.chips;
           ask(fillHtml(s.q, A), fill(s.q, A), chips, v => {
             A[s.k] = v; if (s.map) s.map(v, A);
             if (!/ningu|ainda n/i.test(v)) { S.bed.facts[s.k] = v; save(); }
-            say(rand(["Que legal!", "Adorei!", "Que bonito!", "Boa ideia!"]), 0.8); setTimeout(step, 900);
+            sayThen(`${rand(["Que legal!", "Adorei!", "Oba!", "Que bonito!"])} ${fill("{" + s.k + "}", A) || v}!`, () => setTimeout(step, 400), 0.8);
           });
         } else {
           const t = s.alt && s.alt.when(A) ? s.alt.t : s.t;
@@ -1863,11 +2077,12 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     }
     function clean2(s) { return String(s || "").replace(/[<>{}]/g, "").replace(/\s+/g, " ").trim().slice(0, 600); }
 
-    function goodnight() {
+    function goodnight(nextCh) {
       star("dormir");
       p.innerHTML = `<div class="moon" aria-hidden="true">🌙</div>
         <p class="story-line">Boa noite, <span class="you">${S.name}</span>. Vamos respirar devagar três vezes e fechar os olhos.</p>
-        <div class="row"><button class="btn" id="off">Apagar a tela</button><button class="btn soft" id="again">Outra história</button></div>`;
+        <div class="row"><button class="btn" id="off">Apagar a tela</button>${nextCh ? `<button class="btn soft" id="nextch">${nextCh.e} Próximo capítulo</button>` : ""}<button class="btn soft" id="again">Outra história</button></div>`;
+      if (nextCh) p.querySelector("#nextch").onclick = () => playTemplate(nextCh);
       speakNow = () => say(`Boa noite, ${S.name}. Vamos respirar devagar três vezes. Cheire a flor... sopre a vela. Cheire a flor... sopre a vela. Cheire a flor... sopre a vela. Agora, olhinhos fechados. Durma bem.`, 0.65); speakNow();
       p.querySelector("#again").onclick = menu;
       p.querySelector("#off").onclick = () => {
