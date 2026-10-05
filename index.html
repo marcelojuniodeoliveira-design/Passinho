@@ -2786,6 +2786,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
           <label class="setting" for="rt"><span>Velocidade da voz</span><select id="rt"><option value="0.8">Devagar</option><option value="0.9">Calma</option><option value="1">Normal</option></select></label>
           <label class="setting" for="sz"><span>Tamanho do texto</span><select id="sz"><option value="1">Normal</option><option value="1.15">Grande</option><option value="1.3">Bem grande</option></select></label>
           <label class="setting" for="cm"><span>Sem animações</span><input id="cm" type="checkbox" ${S.calm ? "checked" : ""} style="width:28px;height:28px"></label>
+          <div class="setting"><span>Versão do app: ${window.APP_BUILT || "deste link"}</span><button class="btn soft" id="upd">Atualizar agora</button></div>
           <div class="row"><button class="btn soft" id="reset">Zerar estrelas</button><span id="resetAsk" hidden><button class="btn" id="resetYes">Sim, zerar</button></span></div>
         </div>
         <p class="note"><b>Sobre o microfone:</b> na leitura em voz alta, o navegador (Chrome ou Safari) envia a voz para o serviço de reconhecimento do Google ou da Apple para transformar em texto. O app não grava nem guarda áudio. Sem microfone, um adulto pode marcar a leitura na própria tela.</p>
@@ -2808,6 +2809,13 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     $("sz").onchange = e => { S.size = +e.target.value; save(); applyPrefs(); };
     $("cm").onchange = e => { S.calm = e.target.checked; save(); applyPrefs(); };
     $("reset").onclick = () => { $("resetAsk").hidden = false; };
+    // Busca a versão mais nova do site. O progresso fica guardado no aparelho e não é apagado.
+    $("upd").onclick = () => {
+      if (!navigator.onLine) { $("upd").textContent = "Precisa de internet"; return; }
+      $("upd").textContent = "Atualizando…";
+      const regs = "serviceWorker" in navigator ? navigator.serviceWorker.getRegistrations().then(rs => Promise.all(rs.map(r => r.update().catch(() => {})))) : Promise.resolve();
+      regs.then(() => window.caches ? caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))) : 0).catch(() => {}).then(() => location.reload());
+    };
     $("resetYes").onclick = () => { S.stars = structuredClone(defaults.stars); save(); go("pais"); };
   }
 
@@ -2821,8 +2829,24 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
+  window.APP_BUILT = "05/10/2026 20:22";
   // Guarda o app no aparelho para funcionar sem internet.
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg => {
+      const check = () => { if (navigator.onLine) reg.update().catch(() => {}); };
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
+      setInterval(check, 30 * 60 * 1000);
+    }).catch(() => {});
+    let had = !!navigator.serviceWorker.controller, reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!had) { had = true; return; }
+      if (reloading) return;
+      const reload = () => { if (!reloading) { reloading = true; location.reload(); } };
+      const calm = () => /^(|#home|#splash)$/.test(location.hash);
+      if (calm()) reload(); else window.addEventListener("hashchange", () => { if (calm()) reload(); });
+    });
+  }
   // Pede ao Android para não apagar os dados do app (progresso, relatórios).
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 </script>

@@ -1,7 +1,8 @@
-// Passinho a Passo: guarda tudo no aparelho. Versão 037f3bd078
-const CACHE = "passinho-037f3bd078";
+// Passinho a Passo: guarda tudo no aparelho. Versão 54d455d66d
+const CACHE = "passinho-54d455d66d";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
-self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())); });
+// Baixa sempre do site (sem usar cópia velha do navegador) ao instalar uma versão nova.
+self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", e => {
   const req = e.request;
@@ -18,7 +19,7 @@ self.addEventListener("fetch", e => {
   if (url.origin !== location.origin) return;
   // Páginas: tenta a internet (para pegar atualizações) e cai na cópia guardada sem internet.
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(r => { caches.open(CACHE).then(c => c.put("./index.html", r.clone())); return r; })
+    e.respondWith(fetch(req.url, { cache: "no-store" }).then(r => { caches.open(CACHE).then(c => c.put("./index.html", r.clone())); return r; })
       .catch(() => caches.match("./index.html")));
     return;
   }
