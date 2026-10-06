@@ -2482,10 +2482,20 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
   // A criança é a ⭐ e começa. O app (🌙) joga de leve nos níveis 1–2 e mais esperto nos níveis 3–4, sem ser imbatível.
   const LINES3 = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
   const winner = b => { for (const [a, c, d] of LINES3) if (b[a] && b[a] === b[c] && b[a] === b[d]) return { who: b[a], line: [a, c, d] }; return b.every(Boolean) ? { who: "empate" } : null; };
-  let tttScore = { kid: 0, app: 0 };
+  // O app joga para valer na maior parte das vezes, para ela aprender que nem sempre se ganha.
+  // Se ela perder duas seguidas, ele alivia um pouco; se ganhar duas seguidas, ele aperta.
+  let tttScore = { kid: 0, app: 0 }, tttStreak = 0, tttGames = 0;
+  const LOSE_MSG = [
+    "Dessa vez eu ganhei. Perder faz parte do jogo, e a gente aprende jogando. Vamos de novo?",
+    "Eu ganhei esta. Tudo bem ficar chateada um pouquinho. Respira fundo comigo... e vamos tentar outra?",
+    "Ganhei agora, mas você jogou bem! Dica: quando eu tiver duas luas em linha, coloque uma estrela no caminho.",
+    "Hoje eu ganhei, amanhã pode ser você. Quem joga de novo fica cada vez melhor!",
+    "Ninguém ganha sempre, nem eu. O importante é brincar. Mais uma?"
+  ];
   function velha(p, setSpeak) {
     const lv = skLv("raciocinio"), b = Array(9).fill(null);
     let over = false, busy = false;
+    const appFirst = tttGames++ % 2 === 1; // uma partida ela começa, na outra o app começa
     p.innerHTML = `<p class="hint">Você é a ⭐. Faça três ⭐ em linha: deitada, em pé ou torta.</p>
       <div class="ttt" id="ttt">${b.map((_, i) => `<button class="cell" data-i="${i}" aria-label="Casa ${i + 1}"></button>`).join("")}</div>
       <p class="ttt-score">⭐ Você: <b id="sk">${tttScore.kid}</b> · 🌙 App: <b id="sa">${tttScore.app}</b></p>
@@ -2497,9 +2507,9 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       over = true; cells.forEach(c => c.disabled = true);
       if (r.line) r.line.forEach(i => cells[i].classList.add("win"));
       let m;
-      if (r.who === "k") { tttScore.kid++; m = `${rand(praise)} Você fez três estrelas em linha!`; star("cerebro"); track(true, p, "raciocinio"); }
-      else if (r.who === "a") { tttScore.app++; m = "Dessa vez eu consegui. Vamos jogar de novo?"; track(false, p, "raciocinio"); }
-      else m = "Deu velha! Ninguém ganhou. Foi um jogo bem pensado.";
+      if (r.who === "k") { tttScore.kid++; tttStreak = tttStreak > 0 ? tttStreak + 1 : 1; m = `${rand(praise)} Você fez três estrelas em linha!`; star("cerebro"); track(true, p, "raciocinio"); }
+      else if (r.who === "a") { tttScore.app++; tttStreak = tttStreak < 0 ? tttStreak - 1 : -1; m = rand(LOSE_MSG); star("cerebro"); }
+      else { tttStreak = 0; m = "Deu velha! Ninguém ganhou. Foi um jogo bem pensado."; star("cerebro"); }
       p.querySelector("#sk").textContent = tttScore.kid; p.querySelector("#sa").textContent = tttScore.app;
       fb.textContent = m; say(m);
     };
@@ -2507,10 +2517,13 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     const findMove = who => { for (const l of LINES3) { const v = l.map(i => b[i]); if (v.filter(x => x === who).length === 2 && v.includes(null)) return l[v.indexOf(null)]; } return -1; };
     const appMove = () => {
       const f = free(); let i = -1;
-      const smart = lv >= 3 ? 0.9 : lv === 2 ? 0.55 : 0.3; // chance de jogar bem
+      // Chance de jogar bem: alta em todos os níveis, ajustada pela sequência de vitórias ou derrotas dela.
+      const base = [0, 0.7, 0.8, 0.92, 0.97][lv] || 0.8;
+      const smart = Math.max(0.45, Math.min(0.98, base + (tttStreak >= 2 ? 0.1 : 0) - (tttStreak <= -2 ? 0.3 : 0)));
       if (Math.random() < smart) i = findMove("a");
       if (i < 0 && Math.random() < smart) i = findMove("k");
-      if (i < 0 && lv >= 3 && b[4] === null && Math.random() < 0.6) i = 4;
+      if (i < 0 && b[4] === null && Math.random() < smart) i = 4;
+      if (i < 0 && Math.random() < smart) { const corners = [0, 2, 6, 8].filter(k => !b[k]); if (corners.length) i = rand(corners); }
       if (i < 0) i = rand(f);
       return i;
     };
@@ -2526,8 +2539,9 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       }, 700);
     });
     p.querySelector("#next").onclick = () => { p.innerHTML = ""; velha(p, setSpeak); };
-    const instr = "Jogo da velha! Você é a estrela e começa. Toque numa casinha.";
+    const instr = appFirst ? "Jogo da velha! Agora eu começo. Depois é a sua vez: você é a estrela." : "Jogo da velha! Você é a estrela e começa. Toque numa casinha.";
     setSpeak(() => say(instr)); say(instr);
+    if (appFirst) { busy = true; fb.textContent = "Eu começo esta…"; setTimeout(() => { if (!p.contains(cells[0])) return; put(appMove(), "a"); busy = false; fb.textContent = "Sua vez!"; }, 1200); }
   }
 
   // ---------- Balões de letras ----------
@@ -2834,7 +2848,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "05/10/2026 23:00";
+  window.APP_BUILT = "05/10/2026 23:10";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
