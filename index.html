@@ -738,6 +738,8 @@ body.night {
         <p class="hint">${doneCount === items.length ? "Plano completo! Agora é hora de brincar livre, longe da tela." : `${doneCount} de ${items.length} feitos. Pode parar quando quiser.`}</p></section>
       <nav class="grid">
         <button class="card t-sun" data-go="avaliar"><span class="pic" aria-hidden="true">⭐</span><span><h3>Desafio das estrelas</h3><small>Mostrar o quanto eu já sei</small></span></button>
+        <button class="card t-sky" data-go="letras" data-t="2"><span class="pic" aria-hidden="true">🎈</span><span><h3>Balões de letras</h3><small>Ache a letra e estoure o balão</small></span></button>
+        <button class="card t-lilac" data-go="cerebro" data-t="3"><span class="pic" aria-hidden="true">⭕</span><span><h3>Jogo da velha</h3><small>Três estrelas em linha</small></span></button>
         ${AREAS.map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}
       </nav>
       <div class="parent-link"><button class="linkish" data-go="pais">🔒 Área dos pais</button></div>`;
@@ -2829,7 +2831,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "05/10/2026 20:22";
+  window.APP_BUILT = "05/10/2026 22:48";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
