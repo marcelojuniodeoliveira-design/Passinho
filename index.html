@@ -222,6 +222,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sky-box { position: relative; width: 100%; height: 380px; overflow: hidden; border-radius: 20px; background: linear-gradient(var(--sky-soft), var(--bg)); }
 .balloon { position: absolute; top: 0; width: 64px; height: 78px; margin-left: -32px; border: 0; padding: 0; border-radius: 50% 50% 46% 46%; background: var(--c, #f4b9b2); color: #1f2925; font-family: var(--display); font-size: 2em; font-weight: 700; box-shadow: inset -8px -10px 0 rgba(0,0,0,.08); transition: opacity .3s, scale .3s; will-change: transform; }
 .balloon::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 34px; background: rgba(0,0,0,.25); }
+.balloon.w2 { font-size: 1.45em; }
+.balloon.w4 { width: 84px; height: 74px; margin-left: -42px; font-size: 1.05em; border-radius: 48%; }
+.bal-level { margin: 0; font-weight: 700; color: var(--ink); }
 .balloon.pop { opacity: 0; scale: 1.6; pointer-events: none; }
 .balloon.no { animation: nope .4s; }
 @keyframes nope { 25% { margin-left: -38px; } 75% { margin-left: -26px; } }
@@ -2545,36 +2548,68 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
   }
 
   // ---------- Balões de letras ----------
-  // Balões sobem devagar. O app pede uma letra e a criança estoura o balão certo. Sem pressa: o balão certo sempre volta.
+  // Balões sobem devagar. O app pede uma letra (depois CH/NH/LH, sílabas e palavras) e a criança estoura o balão certo.
+  // A cada 5 acertos sobe um nível, e o progresso fica guardado. Sem pressa: o balão certo sempre volta.
   const BAL_COLORS = ["#f4b9b2", "#b8d8c8", "#f6d98b", "#b9cdee", "#d3c4ea", "#f2c6a0"];
-  const BAL_SETS = [null, "AEIOU", "AEIOUBCDFLMPST", "ABCDEFGHIJLMNOPRSTUVZ", "ABCDEFGHIJLMNOPQRSTUVXZ"];
+  const sylOf = (cs, vs) => cs.flatMap(c => vs.map(v => c + v));
+  const BAL_STAGES = [
+    { n: "Vogais", kind: "letra", t: "AEIOU".split("") },
+    { n: "Primeiras consoantes", kind: "letra", t: "BDLMPT".split(""), extra: "AEIOU".split("") },
+    { n: "Mais letras", kind: "letra", t: "BCDFGJLMNPRSTV".split("") },
+    { n: "Todas as letras", kind: "letra", t: "ABCDEFGHIJLMNOPQRSTUVXZ".split("") },
+    { n: "CH, NH e LH", kind: "digrafo", t: ["CH", "NH", "LH"], extra: ["C", "H", "N", "L"] },
+    { n: "Sílabas", kind: "silaba", t: sylOf(["B", "M", "P", "L", "T", "S", "D", "F"], ["A", "E", "I", "O", "U"]) },
+    { n: "Sílabas com CH, NH e LH", kind: "silaba", t: ["CHA", "CHE", "CHI", "CHO", "CHU", "NHA", "NHE", "NHO", "LHA", "LHE", "LHO"], extra: ["CA", "NA", "LA", "XA", "CO", "NO", "LO"] },
+    { n: "Sílabas difíceis", kind: "silaba", t: ["BRA", "PRA", "TRA", "CRA", "GRA", "FRA", "DRA", "BLA", "CLA", "PLA", "FLO", "GLO"] },
+    { n: "Palavras", kind: "palavra", t: ["BOLA", "CASA", "SAPO", "GATO", "PATO", "MALA", "VACA", "DADO", "LUA", "SOL", "CHUVA", "NINHO", "FOLHA", "PRATO", "BRUXA", "FLOR"] }
+  ];
+  const DIG = { CH: ["cê agá", "de chuva"], NH: ["êne agá", "de ninho"], LH: ["éle agá", "de folha"] };
+  const sayItem = it => it.length === 1 ? letterName(it) : DIG[it] ? DIG[it][0] : it.toLowerCase();
   function baloes(p, setSpeak) {
-    const lv = skLv("letras"), set = BAL_SETS[lv].split(""), count = Math.min([0, 4, 6, 7, 8][lv], Math.floor((app.clientWidth || 360) / 55)), goal = 5;
-    const speed = ([0, 22, 28, 34, 40][lv]) * (S.calm ? 0.6 : 1);
-    let target = rand(set), found = 0, raf = 0, last = 0, lock = false;
-    p.innerHTML = `<p class="hint" id="bh"></p>
+    const lv = skLv("letras"), goal = 5;
+    if (S.balStage == null) S.balStage = [0, 0, 1, 2, 3][lv] || 0;
+    S.balRounds = S.balRounds || 0;
+    const maxCount = Math.floor((app.clientWidth || 360) / 55);
+    let st, set, pool, count, speed, target, found = 0, raf = 0, last = 0, lock = false;
+    const setup = () => {
+      st = BAL_STAGES[Math.min(S.balStage, BAL_STAGES.length - 1)];
+      set = st.t; pool = [...st.t, ...(st.extra || [])];
+      const extraRounds = Math.max(0, S.balStage - (BAL_STAGES.length - 1)); // depois do último nível, vai ficando mais rápido
+      count = Math.min(maxCount, 5 + Math.min(3, Math.floor(S.balStage / 2)) - (st.kind === "palavra" ? 1 : 0));
+      speed = (22 + Math.min(S.balStage, 8) * 2.5) * (1 + Math.min(extraRounds, 8) * 0.08) * (S.calm ? 0.6 : 1);
+    };
+    setup();
+    target = rand(set);
+    p.innerHTML = `<p class="bal-level" id="bl"></p><p class="hint" id="bh"></p>
       <div class="sky-box" id="sky" aria-live="off"></div>
-      <p class="bal-count">Balões estourados: <b id="bc">0</b> de ${goal}</p>
+      <p class="bal-count">Acertos neste nível: <b id="bc">0</b> de ${goal}</p>
       <div class="feedback" id="fb"></div>
-      <div class="row"><button class="btn soft" id="hearL">🔊 Qual letra?</button><button class="btn soft" id="next">Começar de novo</button></div>`;
-    const sky = p.querySelector("#sky"), fb = p.querySelector("#fb"), bh = p.querySelector("#bh");
+      <div class="row"><button class="btn soft" id="hearL">🔊 O que procurar?</button><button class="btn soft" id="easier">⬇ Mais fácil</button></div>`;
+    const sky = p.querySelector("#sky"), fb = p.querySelector("#fb"), bh = p.querySelector("#bh"), blv = p.querySelector("#bl");
     const H = () => sky.clientHeight || 380;
     const balls = [];
-    const hintWord = L => { const w = WORDS.find(x => x.l === L); return w ? ` ${L} de ${w.w}.` : ""; };
-    const ask = () => { bh.textContent = `Encontre a letra ${target}`; const t = `Encontre a letra ${letterName(target)}.${hintWord(target)}`; setSpeak(() => say(t)); say(t); };
-    const pickLetter = () => {
+    const showLevel = () => { blv.textContent = `Nível ${S.balStage + 1}: ${st.n}`; p.querySelector("#bc").textContent = found; };
+    const what = () => st.kind === "letra" ? `a letra ${target}` : st.kind === "digrafo" ? `o ${target}` : st.kind === "silaba" ? `a sílaba ${target}` : `a palavra ${target}`;
+    const askText = () => {
+      if (st.kind === "letra") { const w = WORDS.find(x => x.l === target); return `Encontre a letra ${letterName(target)}.${w ? ` ${target} de ${w.w}.` : ""}`; }
+      if (st.kind === "digrafo") return `Encontre o ${DIG[target][0]}, ${DIG[target][1]}.`;
+      return `Encontre ${st.kind === "silaba" ? "a sílaba" : "a palavra"} ${target.toLowerCase()}.`;
+    };
+    const ask = () => { bh.textContent = `Encontre ${what()}`; const t = askText(); setSpeak(() => say(t)); say(t); };
+    const label = (bl, it) => { bl.L = it; bl.el.textContent = it; bl.el.dataset.l = it; bl.el.classList.toggle("w2", it.length >= 2 && it.length <= 3); bl.el.classList.toggle("w4", it.length >= 4); };
+    const pickItem = () => {
       const have = balls.filter(x => x.L === target).length;
-      if (have < 2 && Math.random() < 0.6) return target;
-      return rand(set);
+      if (have < 2 && Math.random() < 0.5) return target;
+      return rand(pool);
     };
     const spawn = (bl, startY) => {
-      bl.L = pickLetter(); bl.el.textContent = bl.L; bl.el.dataset.l = bl.L;
+      label(bl, pickItem());
       bl.el.style.setProperty("--c", rand(BAL_COLORS));
       bl.y = startY != null ? startY : H() + 20 + Math.random() * 80;
       // Escolhe uma posição que não cubra outro balão.
       let best = 50, gap = -1;
       for (let t = 0; t < 12; t++) {
-        const x = 13 + Math.random() * 74, wpx = sky.clientWidth || 360;
+        const x = 14 + Math.random() * 72, wpx = sky.clientWidth || 360;
         const g = Math.min(999, ...balls.filter(o => o !== bl && o.x != null).map(o => Math.hypot((o.x - x) * wpx / 100, (o.y - bl.y) * 0.8)));
         if (g > gap) { gap = g; best = x; }
       }
@@ -2582,32 +2617,47 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       bl.ph = Math.random() * 6; bl.v = speed * (0.8 + Math.random() * 0.5);
       bl.el.classList.remove("pop", "no");
     };
-    for (let k = 0; k < count; k++) {
-      const el = document.createElement("button"); el.className = "balloon"; el.type = "button";
-      const bl = { el }; balls.push(bl); sky.appendChild(el);
-      spawn(bl, 40 + (k / count) * (H() + 40));
-      el.onclick = () => {
-        if (lock || el.classList.contains("pop")) return;
-        if (bl.L === target) {
-          el.classList.add("pop"); found++; p.querySelector("#bc").textContent = found;
-          star("letras");
-          setTimeout(() => spawn(bl), 350);
-          if (found >= goal) {
-            lock = true; const m = `${rand(praise)} Você estourou ${goal} balões!`;
-            fb.textContent = m; bh.textContent = "Você conseguiu!"; say(m); track(true, p, "letras"); return;
-          }
-          const m = rand(["Isso!", "Achou!", "Muito bem!", "Pou!"]);
-          fb.textContent = `${m} Era o ${target}.`;
-          const prev = target; let n = 0; do { target = rand(set); } while (target === prev && set.length > 1 && ++n < 10);
-          if (!balls.some(x => x.L === target)) spawn(rand(balls.filter(x => x !== bl)));
-          sayThen(`${m} ${letterName(prev)}.`, () => { if (sky.isConnected && !lock) ask(); }, 0.9);
-        } else {
-          el.classList.remove("no"); void el.offsetWidth; el.classList.add("no");
-          fb.textContent = `Esse é o ${bl.L}. Procure o ${target}.`;
-          say(`Esse é o ${letterName(bl.L)}. Procure o ${letterName(target)}.`);
-        }
-      };
-    }
+    const makeBalls = () => {
+      while (balls.length > count) balls.pop().el.remove();
+      while (balls.length < count) {
+        const el = document.createElement("button"); el.className = "balloon"; el.type = "button";
+        const bl = { el }; balls.push(bl); sky.appendChild(el);
+        el.onclick = () => hit(bl);
+      }
+      balls.forEach((bl, k) => spawn(bl, 40 + (k / count) * (H() + 40)));
+    };
+    const nextTarget = () => { const prev = target; let n = 0; do { target = rand(set); } while (target === prev && set.length > 1 && ++n < 10); };
+    const levelUp = () => {
+      lock = true; S.balStage++; if (S.balStage >= BAL_STAGES.length) S.balRounds++; save();
+      track(true, p, "letras");
+      const nextSt = BAL_STAGES[Math.min(S.balStage, BAL_STAGES.length - 1)];
+      const m = S.balStage < BAL_STAGES.length ? `Uau! Você subiu para o nível ${S.balStage + 1}: ${nextSt.n}!` : "Uau! Mais uma rodada de palavras, agora mais rápida!";
+      fb.textContent = m; bh.textContent = "Subiu de nível! ⭐";
+      sayThen(m, () => {
+        if (!sky.isConnected) return;
+        found = 0; setup(); nextTarget(); makeBalls(); showLevel(); lock = false; ask();
+      }, 0.9);
+    };
+    const hit = bl => {
+      const el = bl.el;
+      if (lock || el.classList.contains("pop")) return;
+      if (bl.L === target) {
+        el.classList.add("pop"); found++; p.querySelector("#bc").textContent = found;
+        star("letras");
+        setTimeout(() => spawn(bl), 350);
+        const m = rand(["Isso!", "Achou!", "Muito bem!", "Pou!"]);
+        fb.textContent = `${m} Era ${what()}.`;
+        if (found >= goal) return sayThen(`${m} ${sayItem(target)}.`, () => { if (sky.isConnected) levelUp(); }, 0.9);
+        const prev = target; nextTarget();
+        if (!balls.some(x => x.L === target)) spawn(rand(balls.filter(x => x !== bl)));
+        sayThen(`${m} ${sayItem(prev)}.`, () => { if (sky.isConnected && !lock) ask(); }, 0.9);
+      } else {
+        el.classList.remove("no"); void el.offsetWidth; el.classList.add("no");
+        fb.textContent = `Esse é ${bl.L}. Procure ${target}.`;
+        say(`Esse é ${sayItem(bl.L)}. Procure ${sayItem(target)}.`);
+      }
+    };
+    makeBalls(); showLevel();
     const tick = t => {
       if (!sky.isConnected) return;
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
@@ -2617,19 +2667,19 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
         if (bl.y < -90) spawn(bl);
         bl.el.style.transform = `translate(${Math.sin(bl.ph) * 10}px, ${bl.y}px)`; bl.el.style.left = bl.x + "%";
       });
-      // A letra pedida precisa estar sempre à vista ou chegando: um balão escondido vira a letra certa e entra por baixo.
+      // O que foi pedido precisa estar sempre à vista ou chegando: um balão escondido vira o certo e entra por baixo.
       if (!lock && !balls.some(x => x.L === target && !x.el.classList.contains("pop") && x.y > -40 && x.y < h + 5)) {
         const live = balls.filter(x => !x.el.classList.contains("pop"));
         const off = live.filter(x => x.y >= h - 30 || x.y < -40);
-        const bl = off[0] || live.sort((m, n) => m.y - n.y)[0]; // senão, o balão que já está saindo lá em cima volta por baixo
-        if (bl) { bl.L = target; bl.el.textContent = target; bl.el.dataset.l = target; if (bl.y > h + 5 || bl.y < -40) bl.y = h + 5; }
+        const bl = off[0] || live.slice().sort((m, n) => m.y - n.y)[0]; // senão, o balão que já está saindo lá em cima volta por baixo
+        if (bl) { label(bl, target); if (bl.y > h + 5 || bl.y < -40) bl.y = h + 5; }
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     const prevClean = cleanup; cleanup = () => { cancelAnimationFrame(raf); prevClean && prevClean(); };
     p.querySelector("#hearL").onclick = () => ask();
-    p.querySelector("#next").onclick = () => { cancelAnimationFrame(raf); p.innerHTML = ""; baloes(p, setSpeak); };
+    p.querySelector("#easier").onclick = () => { if (S.balStage > 0) { S.balStage--; save(); } cancelAnimationFrame(raf); p.innerHTML = ""; baloes(p, setSpeak); };
     ask();
   }
   function cerebro() {
@@ -2848,7 +2898,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "05/10/2026 23:10";
+  window.APP_BUILT = "05/10/2026 23:18";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
