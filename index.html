@@ -148,6 +148,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* Cérebro */
 .memory { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 480px; }
 .mcard { aspect-ratio: 1; max-width: 100%; border-radius: 18px; border: 3px solid var(--line); background: var(--lilac-soft); font-size: 2.4em; display: grid; place-items: center; }
+.memory.big { gap: 7px; }
+.memory.big .mcard { font-size: 1.8em; border-radius: 14px; }
 .mcard.open { background: var(--surface); }
 .mcard.done { background: var(--sage-soft); border-color: var(--ok); }
 .simon { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; width: 100%; max-width: 340px; }
@@ -402,6 +404,7 @@ body.night {
   const CONS = ["B", "P", "M", "T", "D", "L", "F", "V", "S", "R"];
 
   const EMO = ["🐶", "🐱", "🦊", "🐢", "🐳", "🦋", "🍎", "🌻"];
+  const MEM_EMO = [...EMO, "🐰", "🐸", "🦁", "🐧", "🍓", "🚗", "🎈", "⭐"];
   const PADS = [
     { c: "var(--sage)", n: "verde", e: "🐸" }, { c: "var(--sky)", n: "azul", e: "🐳" },
     { c: "var(--sun)", n: "amarelo", e: "🐥" }, { c: "var(--clay)", n: "laranja", e: "🦊" }
@@ -2619,15 +2622,15 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     shell("cerebro", TAB_NAMES.cerebro, (tab, p, setSpeak) => [memoria, sequencia, padrao, velha][tab](p, setSpeak));
   }
   function memoria(p, setSpeak) {
-    let pairs = LVs("memoria").pairs;
+    let pairs = S.memPairs || LVs("memoria").pairs;
     const start = () => {
-      const deck = shuffle(shuffle(EMO).slice(0, pairs).flatMap(e => [e, e]));
+      const deck = shuffle(shuffle(MEM_EMO).slice(0, pairs).flatMap(e => [e, e]));
       let open = [], found = 0, lock = false;
       p.innerHTML = `<p class="hint">Vire duas cartas. Encontre os pares iguais.</p>
-        <div class="tabs" style="justify-content:center">${[3, 4, 6].map(n => `<button class="tab" data-n="${n}" aria-selected="${n === pairs}">${n} pares</button>`).join("")}</div>
-        <div class="memory" style="grid-template-columns:repeat(${pairs === 3 ? 3 : 4},minmax(0,1fr))">${deck.map((e, k) => `<button class="mcard" data-k="${k}" aria-label="Carta ${k + 1}"></button>`).join("")}</div>
+        <div class="tabs" style="justify-content:center">${[3, 4, 6, 8, 12].map(n => `<button class="tab" data-n="${n}" aria-selected="${n === pairs}">${n} pares</button>`).join("")}</div>
+        <div class="memory${pairs >= 12 ? " big" : ""}" style="grid-template-columns:repeat(${pairs === 3 ? 3 : 4},minmax(0,1fr))">${deck.map((e, k) => `<button class="mcard" data-k="${k}" aria-label="Carta ${k + 1}"></button>`).join("")}</div>
         <div class="feedback" id="fb"></div>`;
-      p.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { pairs = +b.dataset.n; start(); });
+      p.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { pairs = +b.dataset.n; S.memPairs = pairs; save(); start(); });
       p.querySelectorAll(".mcard").forEach(c => c.onclick = () => {
         if (lock || c.classList.contains("open") || c.classList.contains("done")) return;
         c.classList.add("open"); c.textContent = deck[c.dataset.k]; open.push(c);
@@ -2831,7 +2834,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "05/10/2026 22:48";
+  window.APP_BUILT = "05/10/2026 23:00";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
