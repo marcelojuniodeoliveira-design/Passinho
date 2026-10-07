@@ -1,5 +1,5 @@
-// Passinho a Passo: guarda tudo no aparelho. Versão 9b5b2119a0
-const CACHE = "passinho-9b5b2119a0";
+// Passinho a Passo: guarda tudo no aparelho. Versão b08ce43a16
+const CACHE = "passinho-b08ce43a16";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png"];
 // Baixa sempre do site (sem usar cópia velha do navegador) ao instalar uma versão nova.
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())); });

@@ -346,6 +346,24 @@ body.night {
 .obj.right { border-color: var(--ok); background: var(--sage-soft); }
 .obj.try { animation: nudge .45s; }
 .card.feat { border-width: 3px; border-color: var(--tone); }
+.rt-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.rt-list button { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); text-align: left; font: inherit; }
+.rt-list b { display: block; font-size: 1.1em; } .rt-list small { color: var(--muted); }
+.rt-list .rt-ic { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--sage-soft); flex: none; font-weight: 700; }
+.rt-list .rt-e { font-size: 1.8em; }
+.rt-list .now button { border-color: var(--sage); border-width: 3px; box-shadow: 0 0 0 4px var(--sage-soft); }
+.rt-list .now .rt-ic { background: var(--sage); color: #1f2925; }
+.rt-list .done button { opacity: .75; } .rt-list .done .rt-ic { background: var(--ok); color: #fff; }
+.rt-list .lock button { opacity: .55; }
+.plan .rt-list li button::before { display: none; }
+.rt-go { width: 100%; margin-top: 14px; }
+.rules { margin-top: 14px; padding: 12px 16px; border-radius: 16px; background: var(--sun-soft); text-align: left; }
+.rules ol { margin: 6px 0 0; padding-left: 1.3em; }
+.card.locked { opacity: .5; }
+.rtbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 14px; margin-bottom: 12px; border-radius: 16px; background: var(--sun-soft); font-weight: 700; text-align: left; }
+.rtbar b { white-space: nowrap; }
+.rtdone { position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 50; max-width: 520px; margin: 0 auto; padding: 16px; border-radius: 24px; background: var(--surface); border: 3px solid var(--ok); box-shadow: 0 10px 40px rgba(0,0,0,.25); text-align: center; display: grid; gap: 8px; }
+.rtdone .emoji-xl { font-size: 3em; } .rtdone p { margin: 0; font-size: 1.15em; }
 .calm-motion *, .calm-motion *::before { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 @media (max-width: 480px) {
@@ -369,7 +387,7 @@ body.night {
 (() => {
   // ---------- Estado salvo (só neste aparelho) ----------
   const KEY = "passinho-v1";
-  const defaults = { stars: { trilha: 0, entender: 0, numeros: 0, letras: 0, leitura: 0, fala: 0, cerebro: 0, fora: 0, calma: 0, dormir: 0, avaliar: 0 }, voice: true, tap2: true, rate: 0.9, voiceName: "", calm: false, size: 1, name: "", age: 0, pin: "", limit: { mins: 30, bedFree: true }, usage: null, bed: { facts: {}, saga: "" }, level: 0, sk: {}, log: [], evals: [], plan: { day: "", done: [] }, words: {} };
+  const defaults = { stars: { trilha: 0, entender: 0, numeros: 0, letras: 0, leitura: 0, fala: 0, cerebro: 0, fora: 0, calma: 0, dormir: 0, avaliar: 0 }, voice: true, tap2: true, routine: true, rate: 0.9, voiceName: "", calm: false, size: 1, name: "", age: 0, pin: "", limit: { mins: 30, bedFree: true }, usage: null, bed: { facts: {}, saga: "" }, level: 0, sk: {}, log: [], evals: [], plan: { day: "", done: [] }, words: {} };
   let S = structuredClone(defaults);
   try { const raw = localStorage.getItem(KEY); if (raw) { S = Object.assign(S, JSON.parse(raw)); S.stars = Object.assign(structuredClone(defaults.stars), S.stars); } } catch (e) {}
   const $id = id => document.getElementById(id);
@@ -416,7 +434,7 @@ body.night {
   const praise = ["Muito bem!", "Isso mesmo!", "Você conseguiu!", "Que legal!", "Parabéns pelo esforço!"];
   const retry = ["Quase! Vamos tentar de novo.", "Tudo bem errar. Tente outra vez.", "Olhe com calma e tente de novo."];
   let curTab = 0;
-  const star = area => { S.stars[area] = (S.stars[area] || 0) + 1; markPlan(area, curTab); const el = document.getElementById("starCount"); if (el) el.textContent = total(); };
+  const star = area => { S.stars[area] = (S.stars[area] || 0) + 1; markPlan(area, curTab); if (area !== "trilha" && area !== "entender") routineTick(area); const el = document.getElementById("starCount"); if (el) el.textContent = total(); };
   const total = () => Object.values(S.stars).reduce((a, b) => a + b, 0);
   const h = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
 
@@ -698,8 +716,10 @@ body.night {
     startTab = +tab || 0;
     if (S.name && S.age && timeOver() && !FREE_SCREENS.includes(id) && !(id === "dormir" && S.limit.bedFree)) id = "fim";
     if ((id === "pais" || id === "relatorio") && Date.now() > parentUntil) return gate(() => go(id, tab));
+    if (id === "cerebro" && routineOn() && !gamesOpen()) { say(lockedMsg()); id = "home"; }
     if (cleanup) { cleanup(); cleanup = null; }
     if ("speechSynthesis" in window) try { speechSynthesis.cancel(); } catch (e) {}
+    const oldDone = document.querySelector(".rtdone"); if (oldDone) oldDone.remove();
     current = id;
     app.innerHTML = "";
     ({ splash, fim, home, trilha, entender, numeros, letras, leitura, fala, cerebro, conversa, fora, calma, dormir, pais, avaliar, relatorio })[id]();
@@ -774,8 +794,88 @@ body.night {
     return items;
   }
 
+  // ---------- Rotina guiada ----------
+  // O app escolhe as tarefas do dia, na ordem. Os jogos só abrem depois que todas forem feitas.
+  // A quantidade de tarefas cabe no tempo de uso: sobra sempre um pedaço do tempo para os jogos.
+  const GAMES = [
+    { go: "letras", t: 2, e: "🎈", n: "Balões de letras" }, { go: "cerebro", t: 3, e: "⭕", n: "Jogo da velha" },
+    { go: "cerebro", t: 0, e: "🃏", n: "Jogo da memória" }, { go: "cerebro", t: 1, e: "🎵", n: "Siga a sequência" }, { go: "cerebro", t: 2, e: "🧩", n: "O que vem depois?" }
+  ];
+  const routineOn = () => S.routine !== false && !!S.name;
+  function routine() {
+    if (S.rt && S.rt.day === today()) return S.rt;
+    const mins = S.limit.mins || 60, odd = new Date().getDate() % 2;
+    const tasks = [
+      { go: "trilha", t: 0, area: "trilha", need: 1, e: "🪜", n: "Trilha da leitura", how: "fazer 1 estação" },
+      { go: "entender", t: odd, area: "entender", need: 3, e: "💡", n: TAB_NAMES.entender[odd], how: "fazer 3 desafios" }
+    ];
+    if (mins >= 20) tasks.push(evalDue() ? { go: "avaliar", t: 0, area: "avaliar", need: 1, e: "⭐", n: "Desafio das estrelas", how: "mostrar o que já sabe" }
+      : odd ? { go: "numeros", t: skLv("matematica") <= 1 ? 0 : 2, area: "numeros", need: 3, e: "🔢", n: "Números e contas", how: "acertar 3" }
+      : { go: "letras", t: 1, area: "letras", need: 3, e: "🔤", n: "Montar palavra", how: "montar 3 palavras" });
+    if (mins >= 45) tasks.push(odd ? { go: "letras", t: 1, area: "letras", need: 3, e: "🔤", n: "Montar palavra", how: "montar 3 palavras" }
+      : { go: "numeros", t: skLv("matematica") <= 1 ? 0 : 2, area: "numeros", need: 3, e: "🔢", n: "Números e contas", how: "acertar 3" });
+    S.rt = { day: today(), tasks, i: 0, n: 0 }; save();
+    return S.rt;
+  }
+  const routineLeft = () => routineOn() ? routine().tasks.length - routine().i : 0;
+  const gamesOpen = () => routineLeft() <= 0;
+  const GAME_TABS = { letras: [2], cerebro: [0, 1, 2, 3] };
+  const tabLocked = (area, t) => !gamesOpen() && (GAME_TABS[area] || []).includes(+t);
+  const lockedMsg = () => `Os jogos abrem depois das tarefas. ${routineLeft() === 1 ? "Falta só 1 tarefa!" : `Faltam ${routineLeft()} tarefas.`}`;
+  const rtBarHtml = areaId => {
+    if (!routineOn() || gamesOpen()) return "";
+    const R = routine(), tk = R.tasks[R.i];
+    if (tk.go !== areaId) return "";
+    return `<div class="rtbar" id="rtbar"><span>📋 Tarefa ${R.i + 1} de ${R.tasks.length}: ${tk.n} (${tk.how})</span><b id="rtn">${R.n} de ${tk.need}</b></div>`;
+  };
+  function routineTick(area) {
+    if (!routineOn() || gamesOpen()) return;
+    const R = routine(), tk = R.tasks[R.i];
+    if (tk.area !== area || current !== tk.go) return;
+    R.n++; save();
+    const el = $id("rtn"); if (el) el.textContent = `${Math.min(R.n, tk.need)} de ${tk.need}`;
+    if (R.n < tk.need) return;
+    R.i++; R.n = 0; save();
+    const last = R.i >= R.tasks.length;
+    const old = document.querySelector(".rtdone"); if (old) old.remove();
+    const box = h(`<div class="rtdone" role="status"><div class="emoji-xl">${last ? "🎉" : "✅"}</div>
+      <p><b>${last ? "Você terminou todas as tarefas!" : "Tarefa cumprida!"}</b><br>${last ? "Os jogos estão liberados." : `Próxima: ${R.tasks[R.i].e} ${R.tasks[R.i].n}`}</p>
+      <div class="row"><button class="btn" data-noread>${last ? "🎮 Ver os jogos" : "▶ Próxima tarefa"}</button><button class="btn soft" data-noread>Ficar mais um pouco aqui</button></div></div>`);
+    const [nx, stay] = box.querySelectorAll("button");
+    nx.onclick = () => { box.remove(); if (last) go("home"); else go(R.tasks[R.i].go, R.tasks[R.i].t); };
+    stay.onclick = () => box.remove();
+    document.body.appendChild(box);
+    setTimeout(() => say(last ? `Parabéns, ${S.name}! Você seguiu a rotina e fez todas as tarefas. Agora os jogos estão liberados!` : `Tarefa cumprida! Muito bem. A próxima tarefa é: ${R.tasks[R.i].n}.`), 1800);
+  }
+  function homeRoutine() {
+    const R = routine(), open = gamesOpen(), nm = escapeHtml(S.name);
+    const st = k => k < R.i ? "done" : k === R.i ? "now" : "lock";
+    app.innerHTML = topBar("Passinho a Passo") + `
+      <section class="hello"><h1>Olá, ${nm}! ${open ? "Você terminou a rotina de hoje!" : "Esta é a sua rotina de hoje."}</h1>
+        <p>${open ? "Agora os jogos estão liberados. Pode escolher!" : "Primeiro as tarefas, uma de cada vez, na ordem. Depois, os jogos abrem."}</p></section>
+      ${clockHtml()}
+      <section class="plan rotina"><div class="plan-head"><h3>📋 Rotina de hoje</h3><span class="hint">${Math.min(R.i, R.tasks.length)} de ${R.tasks.length} feitas</span></div>
+        <ol class="rt-list">${R.tasks.map((tk, k) => `<li class="${st(k)}"><button ${st(k) === "lock" ? `data-locked="1"` : `data-go="${tk.go}" data-t="${tk.t}"`} data-say="${st(k) === "done" ? "feita" : st(k) === "now" ? "agora" : "depois"}: ${tk.n}, ${tk.how}">
+          <span class="rt-ic">${st(k) === "done" ? "✓" : st(k) === "now" ? "▶" : "🔒"}</span><span class="rt-e">${tk.e}</span><span><b>${tk.n}</b><small>${tk.how}</small></span></button></li>`).join("")}
+          <li class="${open ? "done" : "lock"} games-step"><button ${open ? "" : `data-locked="1"`} data-say="jogos livres"><span class="rt-ic">${open ? "✓" : "🔒"}</span><span class="rt-e">🎮</span><span><b>Jogos livres</b><small>${open ? "liberados!" : "depois das tarefas"}</small></span></button></li></ol>
+        ${open ? "" : `<button class="btn big rt-go" data-go="${R.tasks[R.i].go}" data-t="${R.tasks[R.i].t}">▶ Começar: ${R.tasks[R.i].n}</button>`}
+        <div class="rules"><b>Combinados:</b><ol><li>Uma tarefa de cada vez, na ordem.</li><li>Terminou as tarefas, os jogos abrem.</li><li>Quando o tempo acabar, a gente para e descansa.</li></ol></div>
+      </section>
+      <section class="plan"><div class="plan-head"><h3>🎮 Jogos ${open ? "liberados" : "🔒"}</h3></div>
+        <nav class="grid">${GAMES.map(g => `<button class="card t-sky${open ? "" : " locked"}" ${open ? `data-go="${g.go}" data-t="${g.t}"` : `data-locked="1"`}><span class="pic" aria-hidden="true">${open ? g.e : "🔒"}</span><span><h3>${g.n}</h3><small>${open ? "Pode jogar!" : "Abre depois das tarefas"}</small></span></button>`).join("")}</nav>
+      </section>
+      ${open ? `<nav class="grid">${AREAS.filter(a => a.id !== "dormir" && a.id !== "calma").map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}</nav>` : ""}
+      <nav class="grid">${AREAS.filter(a => a.id === "calma" || a.id === "dormir").map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}</nav>
+      <div class="parent-link"><button class="linkish" data-go="pais">🔒 Área dos pais</button></div>`;
+    app.querySelectorAll("[data-locked]").forEach(b => b.addEventListener("click", () => say(lockedMsg())));
+    const m = open ? `Parabéns, ${S.name}! Você terminou a rotina. Agora pode escolher um jogo.` : `${S.name}, agora é a tarefa ${R.i + 1}: ${R.tasks[R.i].n}. Toque no botão verde para começar.`;
+    $id("hear").onclick = () => say(m);
+    setTimeout(() => { if (current === "home") say(m); }, 1200);
+  }
+
   function home() {
     if (!S.name || !S.age) return welcome();
+    if (routineOn()) return homeRoutine();
     const nm = `, ${S.name}`;
     if (S.plan.day !== today()) { S.plan = { day: today(), done: [] }; save(); }
     const items = dailyPlan();
@@ -1098,7 +1198,8 @@ body.night {
     const a = AREAS.find(x => x.id === areaId);
     app.innerHTML = topBar(a.n, a) + `<section class="screen ${a.tone}">
       <h2>${a.e} ${a.n}</h2>
-      ${tabs.length > 1 ? `<div class="tabs" role="tablist">${tabs.map((t, i) => `<button class="tab" role="tab" data-tab="${i}" aria-selected="${i === 0}">${t}</button>`).join("")}</div>` : ""}
+      ${rtBarHtml(areaId)}
+      ${tabs.length > 1 ? `<div class="tabs" role="tablist">${tabs.map((t, i) => `<button class="tab" role="tab" data-tab="${i}" aria-selected="${i === 0}">${tabLocked(areaId, i) ? "🔒 " : ""}${t}</button>`).join("")}</div>` : ""}
       <div class="panel" id="panel" aria-live="polite"></div>
     </section>`;
     const panel = document.getElementById("panel");
@@ -1110,8 +1211,9 @@ body.night {
       app.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab == i));
       curTab = i; panel.innerHTML = ""; render(i, panel, setSpeak);
     };
-    app.querySelectorAll(".tab").forEach(b => b.onclick = () => show(+b.dataset.tab));
-    show(Math.min(startTab, tabs.length - 1));
+    app.querySelectorAll(".tab").forEach(b => b.onclick = () => tabLocked(areaId, b.dataset.tab) ? say(lockedMsg()) : show(+b.dataset.tab));
+    const first = Math.min(startTab, tabs.length - 1);
+    show(tabLocked(areaId, first) ? 0 : first);
   }
 
   // ---------- Letras ----------
@@ -1672,6 +1774,7 @@ body.night {
     const finish = (score, total) => {
       area.innerHTML = ""; count.textContent = ""; phase(3);
       const pass = score >= Math.max(1, total - 1);
+      routineTick("trilha");
       if (pass) {
         T.best[i] = Math.max(T.best[i] || 0, score); if (T.at <= i) T.at = i + 1; save(); star("trilha");
         area.innerHTML = `<div class="emoji-xl">🏆</div>`;
@@ -1769,7 +1872,7 @@ body.night {
           if (si < task.steps.length) { mark(); say(rand(["Isso! E agora?", "Muito bem! Qual é o próximo?", "Certo! E depois?"])); return; }
           over = true; mark();
           const ok = miss <= 1; if (ok) found++;
-          track(miss === 0, null, "raciocinio");
+          track(miss === 0, null, "raciocinio"); routineTick("entender");
           const m = rand(praise);
           if (found >= goal && S.ordLv < 7) {
             S.ordLv++; save(); star("entender"); found = 0;
@@ -1859,7 +1962,7 @@ body.night {
       p.querySelector("#peasy").onclick = () => { if (S.penLv > 0) { S.penLv--; save(); } found = 0; draw(); };
       const fb = p.querySelector("#fb");
       penItem(lv)(p.querySelector("#parea"), false, ok => {
-        track(ok, null, "raciocinio");
+        track(ok, null, "raciocinio"); routineTick("entender");
         if (ok) found++;
         if (found >= goal) {
           found = 0; star("entender");
@@ -3419,6 +3522,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
           <label class="setting" for="lim"><span>Tempo de uso por dia</span><select id="lim">${[[15,"15 minutos"],[20,"20 minutos"],[30,"30 minutos"],[45,"45 minutos"],[60,"1 hora"],[0,"Sem limite"]].map(([v,t]) => `<option value="${v}" ${S.limit.mins === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>
           <label class="setting" for="bf"><span>Hora de dormir fora da conta do tempo</span><input id="bf" type="checkbox" ${S.limit.bedFree ? "checked" : ""} style="width:28px;height:28px"></label>
           <div class="setting"><span>Hoje: ${Math.round(usage().secs / 60)} min usados${usage().extra ? `, ${usage().extra} min extras liberados` : ""}</span><button class="btn soft" id="newpin">Trocar senha</button></div>
+          <label class="setting" for="rtOn"><span>Rotina guiada: o app escolhe as tarefas do dia e os jogos só abrem depois delas</span><input id="rtOn" type="checkbox" ${S.routine !== false ? "checked" : ""} style="width:28px;height:28px"></label>
           <label class="setting" for="t2"><span>Ler a opção no 1º toque e escolher no 2º toque</span><input id="t2" type="checkbox" ${S.tap2 ? "checked" : ""} style="width:28px;height:28px"></label>
           <label class="setting" for="vn"><span>Voz</span><select id="vn" style="max-width:100%"><option value="">Automática (a mais natural)</option>${ptVoices.map(v => `<option value="${escapeHtml(v.name)}" ${S.voiceName === v.name ? "selected" : ""}>${escapeHtml(v.name.replace(/^(Microsoft|Google)\s*/, ""))}${v.localService ? "" : " (com internet)"}</option>`).join("")}</select><button class="btn soft" id="vtest">▶ Ouvir</button></label>
           <label class="setting" for="rt"><span>Velocidade da voz</span><select id="rt"><option value="0.8">Devagar</option><option value="0.9">Calma</option><option value="1">Normal</option></select></label>
@@ -3441,6 +3545,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     $("nm").oninput = e => { S.name = e.target.value.trim(); save(); };
     $("ag").value = String(S.age || ""); $("ag").onchange = e => { setAge(+e.target.value, false); go("pais"); };
     $("forget").onclick = () => { S.bed = { facts: {}, saga: "" }; save(); $("forget").textContent = "Respostas apagadas"; };
+    $("rtOn").onchange = e => { S.routine = e.target.checked; save(); };
     $("t2").onchange = e => { S.tap2 = e.target.checked; save(); };
     $("rt").onchange = e => { S.rate = +e.target.value; save(); say("Assim fica a minha voz."); };
     $("vn").onchange = e => { S.voiceName = e.target.value; save(); pickVoice(); say(`Oi, ${S.name || "tudo bem"}! Esta é a minha voz.`); };
@@ -3468,7 +3573,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "07/10/2026 20:07";
+  window.APP_BUILT = "07/10/2026 20:19";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
