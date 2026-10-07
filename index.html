@@ -305,6 +305,47 @@ body.night {
 .tonight .te { font-size: 2.8em; }
 .tonight small { display: block; color: var(--muted); }
 .tonight b { font-family: var(--display); font-size: 1.3em; }
+.routine { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.routine span { padding: 4px 10px; font-size: .85em; border-radius: 999px; border: 2px solid var(--line); color: var(--muted); font-weight: 700; }
+.routine span.on { border-color: var(--tone, var(--sage)); background: var(--tone-soft, var(--sage-soft)); color: var(--ink); }
+.routine span.done { color: var(--ok); border-color: var(--ok); }
+.tarea .read-word { font-size: clamp(2.2em, 10vw, 3.6em); }
+.tarea { display: grid; gap: 16px; justify-items: center; width: 100%; }
+.glow { border-color: var(--sun) !important; box-shadow: 0 0 0 5px var(--sun-soft); animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 0 0 11px var(--sun-soft); } }
+.trail-map { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; width: 100%; }
+.tstation { position: relative; min-height: 88px; border-radius: 18px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); display: grid; place-items: center; gap: 2px; padding: 8px 4px; font-weight: 700; font-size: .85em; }
+.tstation b { font-size: 1.5em; }
+.tstation.done { border-color: var(--ok); background: var(--sage-soft); }
+.tstation.done::after { content: "✓"; position: absolute; top: 4px; right: 8px; color: var(--ok); font-size: 1.2em; }
+.tstation.here { border-color: var(--sun); box-shadow: 0 0 0 4px var(--sun-soft); }
+.tstation:disabled { opacity: .45; }
+.fam-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; border-radius: 18px; padding: 4px; }
+.fam-row span { min-width: 64px; padding: 10px; border-radius: 16px; border: 2px solid var(--line); font-size: 1.8em; font-weight: 700; }
+.fam-row span.on, .fam-row.on span { background: var(--sun-soft); border-color: var(--sun); }
+.blank-syl { color: var(--muted); border-bottom: 5px solid var(--line); min-width: 1.4em; }
+.sentence { font-size: 1.8em; font-weight: 700; line-height: 1.5; margin: 0; }
+.ttext { font-size: 1.25em; line-height: 1.7; text-align: left; max-width: 34em; font-weight: 600; margin: 0; }
+.qtext { font-size: 1.3em; font-weight: 700; margin: 0; }
+.sentence .w, .ttext .w { padding: 0 .08em; border-radius: 8px; transition: background .2s; }
+.sentence .w.on, .ttext .w.on { background: var(--sun); }
+.choice.lab { width: auto; min-width: 118px; height: auto; min-height: 118px; padding: 10px 14px; font-size: 2.6em; gap: 4px; align-content: center; }
+.choice.lab small { font-size: .36em; font-weight: 700; line-height: 1.2; max-width: 9em; }
+.choice.pic2 { width: 140px; font-size: 2.8em; letter-spacing: .05em; }
+.seq-row { font-size: 2.8em; display: flex; gap: 6px; align-items: center; }
+.steps { display: grid; gap: 8px; width: 100%; max-width: 30em; }
+.steps .st { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 16px; border: 2px solid var(--line); text-align: left; font-weight: 700; font-size: 1.1em; }
+.steps .st .n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--tone-soft, var(--sage-soft)); flex: none; }
+.steps .st.now { border-color: var(--tone, var(--sage)); }
+.steps .st.on { background: var(--sun-soft); }
+.steps .st.ok { border-color: var(--ok); background: var(--sage-soft); }
+.steps .st .ic { margin-left: auto; font-size: 1.6em; }
+.obj-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 30em; }
+.obj { aspect-ratio: 1; border-radius: 20px; border: 3px solid var(--line); background: var(--bg); font-size: 2.4em; display: grid; place-items: center; padding: 0; }
+.obj.small { font-size: 1.3em; } .obj.big { font-size: 3.2em; }
+.obj.right { border-color: var(--ok); background: var(--sage-soft); }
+.obj.try { animation: nudge .45s; }
+.card.feat { border-width: 3px; border-color: var(--tone); }
 .calm-motion *, .calm-motion *::before { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 @media (max-width: 480px) {
@@ -315,6 +356,10 @@ body.night {
   .item { grid-template-columns: auto 1fr; }
   .item .count, .item .btn { grid-column: 1 / -1; }
   .top .title { display: none; }
+  .choice.lab { min-width: 96px; min-height: 104px; font-size: 2.2em; padding: 8px; }
+  .choice.pic2 { width: 112px; font-size: 2.2em; }
+  .sentence { font-size: 1.45em; }
+  .obj-grid { gap: 8px; }
 }
 </style>
 
@@ -324,7 +369,7 @@ body.night {
 (() => {
   // ---------- Estado salvo (só neste aparelho) ----------
   const KEY = "passinho-v1";
-  const defaults = { stars: { numeros: 0, letras: 0, leitura: 0, fala: 0, cerebro: 0, fora: 0, calma: 0, dormir: 0, avaliar: 0 }, voice: true, tap2: true, rate: 0.9, voiceName: "", calm: false, size: 1, name: "", age: 0, pin: "", limit: { mins: 30, bedFree: true }, usage: null, bed: { facts: {}, saga: "" }, level: 0, sk: {}, log: [], evals: [], plan: { day: "", done: [] }, words: {} };
+  const defaults = { stars: { trilha: 0, entender: 0, numeros: 0, letras: 0, leitura: 0, fala: 0, cerebro: 0, fora: 0, calma: 0, dormir: 0, avaliar: 0 }, voice: true, tap2: true, rate: 0.9, voiceName: "", calm: false, size: 1, name: "", age: 0, pin: "", limit: { mins: 30, bedFree: true }, usage: null, bed: { facts: {}, saga: "" }, level: 0, sk: {}, log: [], evals: [], plan: { day: "", done: [] }, words: {} };
   let S = structuredClone(defaults);
   try { const raw = localStorage.getItem(KEY); if (raw) { S = Object.assign(S, JSON.parse(raw)); S.stars = Object.assign(structuredClone(defaults.stars), S.stars); } } catch (e) {}
   const $id = id => document.getElementById(id);
@@ -430,6 +475,8 @@ body.night {
   ];
 
   const AREAS = [
+    { id: "trilha", tone: "t-sage", e: "🪜", n: "Trilha da leitura", d: "Aprender a ler passo a passo", intro: "Vamos aprender a ler, um passinho de cada vez." },
+    { id: "entender", tone: "t-lilac", e: "💡", n: "Entender e pensar", d: "Escutar o pedido e fazer certinho", intro: "Vamos escutar com atenção e pensar juntos." },
     { id: "letras", tone: "t-sage", e: "🔤", n: "Letras e palavras", d: "Conhecer letras e montar palavras", intro: "Vamos brincar com as letras!" },
     { id: "numeros", tone: "t-sun", e: "🔢", n: "Números e contas", d: "Contar, comparar e fazer continhas", intro: "Vamos brincar com os números!" },
     { id: "leitura", tone: "t-sky", e: "📖", n: "Leitura em voz alta", d: "Eu leio e o app escuta", intro: "Vamos ler juntos!" },
@@ -467,7 +514,7 @@ body.night {
       texts: ["A astronauta Clara olhou pela janela da nave. Lá embaixo, a Terra parecia uma bola azul. Ela anotou tudo no caderno para contar aos alunos da escola.", "Na biblioteca da escola, Davi encontrou um livro sobre dinossauros. Ele descobriu que alguns eram do tamanho de uma galinha."] }
   ];
   const LV = () => LEVELS[S.level || 2];
-  const TAB_NAMES = { numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra", "Balões de letras"], leitura: ["Ler palavras", "Ler um texto", "Soletrar"], conversa: ["Conversar"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?", "Jogo da velha"], fora: ["Missão"], calma: ["Respirar"] };
+  const TAB_NAMES = { trilha: ["Trilha"], entender: ["Siga o pedido", "Pense e responda"], numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra", "Balões de letras"], leitura: ["Ler palavras", "Ler um texto", "Soletrar"], conversa: ["Conversar"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?", "Jogo da velha"], fora: ["Missão"], calma: ["Respirar"] };
   const today = () => new Date().toISOString().slice(0, 10);
   const planKey = (a, t) => a + ":" + t;
   const markPlan = (area, tab) => { if (S.plan.day !== today()) S.plan = { day: today(), done: [] }; const k = planKey(area, tab); if (!S.plan.done.includes(k)) S.plan.done.push(k); save(); };
@@ -655,7 +702,7 @@ body.night {
     if ("speechSynthesis" in window) try { speechSynthesis.cancel(); } catch (e) {}
     current = id;
     app.innerHTML = "";
-    ({ splash, fim, home, numeros, letras, leitura, fala, cerebro, conversa, fora, calma, dormir, pais, avaliar, relatorio })[id]();
+    ({ splash, fim, home, trilha, entender, numeros, letras, leitura, fala, cerebro, conversa, fora, calma, dormir, pais, avaliar, relatorio })[id]();
     window.scrollTo(0, 0);
     try { history.replaceState(null, "", id === "home" ? location.pathname : "#" + id); } catch (e) {}
   }
@@ -665,7 +712,7 @@ body.night {
 
   // Toque duplo: o 1º toque lê a opção em voz alta e a destaca; o 2º toque na mesma opção confirma.
   // Ficam de fora botões que já falam ou que são a própria jogada (contar, memória, sequência, microfone, senha).
-  const NO_READ = "#hear, .cell, .balloon, .mic, #mic, .key, .pad, .mcard, .cnt, .dot, .syl, #slow, #fast, #all, #listenFirst, #vtest, [data-noread]";
+  const NO_READ = "#hear, .obj, .cell, .balloon, .mic, #mic, .key, .pad, .mcard, .cnt, .dot, .syl, #slow, #fast, #all, #listenFirst, #vtest, [data-noread]";
   let armed = null, armedAt = 0;
   const disarm = () => { if (armed) armed.classList.remove("armed"); armed = null; };
   const labelOf = b => b.dataset.say || ((b.innerText || "").toLocaleLowerCase("pt-BR").replace(/\s*\n+\s*/g, ". ") + " ").replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D←→⌫▶🔒]/gu, " ").replace(/\s+/g, " ").replace(/^[\s.]+|[\s.]+$/g, "") || (b.getAttribute("aria-label") || "").trim();
@@ -715,10 +762,13 @@ body.night {
   function dailyPlan() {
     const items = [];
     if (evalDue()) items.push({ go: "avaliar", t: 0, e: "⭐", label: lastEval() ? "Desafio das estrelas (hora de ver a evolução)" : "Desafio das estrelas (primeira vez)" });
+    const T = trailState();
+    items.push({ go: "trilha", t: 0, e: "🪜", label: `Trilha da leitura: ${T.at >= TRAIL.length ? "treinar" : stName(T.at)}` });
+    items.push({ go: "entender", t: new Date().getDate() % 2, e: "💡", label: `Entender e pensar: ${TAB_NAMES.entender[new Date().getDate() % 2]}` });
     const weak = Object.keys(SKILLS).map(k => { const r = recent(k, 7); return { k, score: r.n >= 4 ? r.ok / r.n : 1, lv: skLv(k) }; })
       .sort((a, b) => a.score - b.score || a.lv - b.lv)[0];
     const sk = SKILLS[weak.k];
-    items.push({ go: sk.go[0], t: sk.go[1], e: sk.e, label: `${sk.n}: ${TAB_NAMES[sk.go[0]][sk.go[1]]}` });
+    if (items.length < 3) items.push({ go: sk.go[0], t: sk.go[1], e: sk.e, label: `${sk.n}: ${TAB_NAMES[sk.go[0]][sk.go[1]]}` });
     LV().plan.forEach(([a, t]) => { if (items.length < 3 && !items.some(x => x.go === a && x.t === t)) { const ar = AREAS.find(x => x.id === a); items.push({ go: a, t, e: ar.e, label: `${ar.n}: ${TAB_NAMES[a][t]}` }); } });
     if (!items.some(x => x.go === "fora")) items.push({ go: "fora", t: 0, e: "🌳", label: "Missões fora da tela: Missão" });
     return items;
@@ -743,10 +793,11 @@ body.night {
         <ol>${items.map(x => `<li class="${isDone(x) ? "done" : ""}"><button data-go="${x.go}" data-t="${x.t}"><span>${x.e}</span><span>${x.label}</span></button></li>`).join("")}</ol>
         <p class="hint">${doneCount === items.length ? "Plano completo! Agora é hora de brincar livre, longe da tela." : `${doneCount} de ${items.length} feitos. Pode parar quando quiser.`}</p></section>
       <nav class="grid">
+        ${AREAS.slice(0, 2).map(a => `<button class="card ${a.tone} feat" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}
         <button class="card t-sun" data-go="avaliar"><span class="pic" aria-hidden="true">⭐</span><span><h3>Desafio das estrelas</h3><small>Mostrar o quanto eu já sei</small></span></button>
         <button class="card t-sky" data-go="letras" data-t="2"><span class="pic" aria-hidden="true">🎈</span><span><h3>Balões de letras</h3><small>Ache a letra e estoure o balão</small></span></button>
         <button class="card t-lilac" data-go="cerebro" data-t="3"><span class="pic" aria-hidden="true">⭕</span><span><h3>Jogo da velha</h3><small>Três estrelas em linha</small></span></button>
-        ${AREAS.map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}
+        ${AREAS.slice(2).map(a => `<button class="card ${a.tone}" data-go="${a.id}"><span class="pic" aria-hidden="true">${a.e}</span><span><h3>${a.n}</h3><small>${a.d}</small></span></button>`).join("")}
       </nav>
       <div class="parent-link"><button class="linkish" data-go="pais">🔒 Área dos pais</button></div>`;
     document.getElementById("hear").onclick = () => say(`Olá${nm}! Vamos fazer o plano de hoje?`);
@@ -1307,6 +1358,517 @@ body.night {
     p.querySelector("#next").onclick = () => { p.innerHTML = ""; soletrar(p, setSpeak); };
     setSpeak(() => demo());
     demo();
+  }
+
+  // ---------- Trilha da leitura ----------
+  // Cada estação segue sempre a mesma rotina, para a criança saber o que vem: 👂 Escute → 🤝 Juntos → ⭐ Sozinha.
+  // No "Juntos" a resposta certa brilha (aprender sem errar). No "Sozinha", se errar, a certa brilha e a criança segue.
+  const VOW = ["A", "E", "I", "O", "U"];
+  const VOW_W = { A: ["abelha", "🐝"], E: ["elefante", "🐘"], I: ["igreja", "⛪"], O: ["ovo", "🥚"], U: ["uva", "🍇"] };
+  const TRAIL = ["vog", "M", "P", "B", "T", "pal", "L", "D", "pal", "mon", "F", "V", "pal", "N", "S", "pal", "mon", "C", "G", "pal", "R", "J", "pal", "mon", "CH", "NH", "LH", "pal", "fra", "fra", "tex", "tex", "tex"];
+  const TW = [
+    ["pato", "🦆", "PA TO"], ["bota", "👢", "BO TA"], ["mapa", "🗺️", "MA PA"], ["bebê", "👶", "BE BÊ"], ["tomate", "🍅", "TO MA TE"], ["pipa", "🪁", "PI PA"], ["batata", "🥔", "BA TA TA"],
+    ["bola", "⚽", "BO LA"], ["lua", "🌙", "LU A"], ["mala", "🧳", "MA LA"], ["dado", "🎲", "DA DO"], ["dedo", "☝️", "DE DO"], ["lata", "🥫", "LA TA"], ["bolo", "🎂", "BO LO"], ["lobo", "🐺", "LO BO"],
+    ["fada", "🧚", "FA DA"], ["uva", "🍇", "U VA"], ["vela", "🕯️", "VE LA"], ["ovo", "🥚", "O VO"], ["fita", "🎀", "FI TA"], ["viola", "🎻", "VI O LA"],
+    ["sapo", "🐸", "SA PO"], ["sino", "🔔", "SI NO"], ["sofá", "🛋️", "SO FÁ"], ["banana", "🍌", "BA NA NA"], ["menina", "👧", "ME NI NA"], ["sapato", "👞", "SA PA TO"], ["salada", "🥗", "SA LA DA"],
+    ["casa", "🏠", "CA SA"], ["gato", "🐱", "GA TO"], ["cama", "🛏️", "CA MA"], ["vaca", "🐄", "VA CA"], ["foca", "🦭", "FO CA"], ["macaco", "🐒", "MA CA CO"], ["cavalo", "🐴", "CA VA LO"], ["galo", "🐓", "GA LO"], ["gota", "💧", "GO TA"],
+    ["rato", "🐭", "RA TO"], ["janela", "🪟", "JA NE LA"], ["jacaré", "🐊", "JA CA RÉ"], ["girafa", "🦒", "GI RA FA"], ["sorvete", "🍦", "SOR VE TE"],
+    ["chave", "🔑", "CHA VE"], ["chuva", "🌧️", "CHU VA"], ["galinha", "🐔", "GA LI NHA"], ["folha", "🍃", "FO LHA"], ["abelha", "🐝", "A BE LHA"], ["coelho", "🐰", "CO E LHO"], ["ovelha", "🐑", "O VE LHA"], ["aranha", "🕷️", "A RA NHA"], ["chapéu", "👒", "CHA PÉU"]
+  ].map(([w, e, s]) => ({ w, e, s: s.split(" ") }));
+  const SENT = [
+    ["O gato dorme na cama.", "🐱🛏️"], ["O pato nada no lago.", "🦆💧"], ["A menina come banana.", "👧🍌"], ["O macaco come banana.", "🐒🍌"],
+    ["A vaca dá leite.", "🐄🥛"], ["O bebê toma banho.", "👶🛁"], ["A galinha bota ovo.", "🐔🥚"], ["A lua está no céu.", "🌙⭐"],
+    ["O cachorro late para o gato.", "🐶🐱"], ["A abelha voa na flor.", "🐝🌸"], ["Chove na casa.", "🌧️🏠"], ["O menino anda de bicicleta.", "👦🚲"],
+    ["A menina dorme na cama.", "👧🛏️"], ["O sapo pula no lago.", "🐸💧"]
+  ];
+  const TEXTS = [
+    { t: "A Lili tem um gato. O gato se chama Bolinha. Ele dorme na cama da Lili.", q: [
+      ["Quem tem um gato?", ["👧", "A Lili"], [["👦", "O Davi"], ["👵", "A vovó"]]],
+      ["Onde o gato dorme?", ["🛏️", "Na cama"], [["🌳", "Na árvore"], ["🚗", "No carro"]]],
+      ["Qual é o nome do gato?", ["🐱", "Bolinha"], [["🐶", "Totó"], ["🐰", "Pipoca"]]]] },
+    { t: "Choveu muito. O Davi pegou o guarda-chuva. Ele pulou na poça e riu muito.", q: [
+      ["Como estava o tempo?", ["🌧️", "Chovendo"], [["☀️", "Com sol"], ["⛄", "Com neve"]]],
+      ["O que o Davi pegou?", ["☂️", "O guarda-chuva"], [["⚽", "A bola"], ["📚", "O livro"]]],
+      ["Como o Davi ficou?", ["😄", "Feliz"], [["😢", "Triste"], ["😠", "Bravo"]]]] },
+    { t: "A vovó fez um bolo de banana. A Lia ajudou a mexer. Depois, elas comeram juntas.", q: [
+      ["Quem fez o bolo?", ["👵", "A vovó"], [["👩", "A mamãe"], ["👨", "O papai"]]],
+      ["O bolo era de quê?", ["🍌", "Banana"], [["🍓", "Morango"], ["🍫", "Chocolate"]]],
+      ["O que elas fizeram depois?", ["🍰", "Comeram juntas"], [["😴", "Dormiram"], ["⚽", "Jogaram bola"]]]] },
+    { t: "O sapo Tito mora no lago. Ele gosta de pular. De noite, ele canta: croac, croac!", q: [
+      ["Onde o Tito mora?", ["💧", "No lago"], [["🏠", "Na casa"], ["🌳", "Na árvore"]]],
+      ["Do que o Tito gosta?", ["🐸", "De pular"], [["🍦", "De sorvete"], ["📺", "De TV"]]],
+      ["Quando ele canta?", ["🌙", "De noite"], [["☀️", "De manhã"], ["🍽️", "No almoço"]]]] },
+    { t: "A Bia foi ao parque com o papai. Ela brincou no balanço. Depois, tomou um sorvete de morango.", q: [
+      ["Com quem a Bia foi ao parque?", ["👨", "Com o papai"], [["👵", "Com a vovó"], ["🐶", "Com o cachorro"]]],
+      ["O que ela tomou?", ["🍦", "Sorvete"], [["🥛", "Leite"], ["🧃", "Suco"]]],
+      ["O sorvete era de quê?", ["🍓", "Morango"], [["🍫", "Chocolate"], ["🍌", "Banana"]]]] },
+    { t: "O cachorro Totó achou um osso. Ele cavou um buraco e escondeu o osso no jardim.", q: [
+      ["O que o Totó achou?", ["🦴", "Um osso"], [["⚽", "Uma bola"], ["👟", "Um tênis"]]],
+      ["Onde ele escondeu o osso?", ["🌻", "No jardim"], [["🛏️", "Na cama"], ["🚗", "No carro"]]],
+      ["Quem é o Totó?", ["🐶", "Um cachorro"], [["🐱", "Um gato"], ["🐴", "Um cavalo"]]]] }
+  ];
+  const isFam = k => k.length <= 2;
+  const famSyl = c => (c === "C" || c === "G" ? ["A", "O", "U"] : VOW).map(v => c + v);
+  const consOf = s => (s.match(/^(CH|NH|LH|[BCDFGJLMNPRSTVXZ])/) || [""])[0];
+  const sylSay = s => s.toLowerCase().replace(/^(.*[^aeiou]|)e$/, "$1é").replace(/^(.*[^aeiou]|)o$/, "$1ó");
+  const famName = c => DIG[c] ? DIG[c][0] : letterName(c);
+  const stName = i => { const k = TRAIL[i]; return k === "vog" ? "As vogais" : k === "pal" ? "Ler palavras" : k === "mon" ? "Montar palavras" : k === "fra" ? "Ler frases" : k === "tex" ? "Ler e entender" : `Família do ${k}`; };
+  const stIcon = i => { const k = TRAIL[i]; return k === "vog" ? "AEIOU" : k === "pal" ? "📖" : k === "mon" ? "🧩" : k === "fra" ? "📝" : k === "tex" ? "📚" : k; };
+  const learnedAt = i => new Set(TRAIL.slice(0, i + 1).filter(isFam));
+  const wordsAt = i => { const L = learnedAt(i); return TW.filter(w => w.s.every(s => !consOf(s) || L.has(consOf(s)))); };
+  // Palavras da estação: a maioria usa as famílias que acabaram de ser aprendidas.
+  const pickWords = (i, n) => {
+    let j = i - 1; while (j > 0 && isFam(TRAIL[j])) j--;
+    const fresh = new Set(TRAIL.slice(j + 1, i).filter(isFam));
+    const pool = wordsAt(i), nw = shuffle(pool.filter(w => w.s.some(s => fresh.has(consOf(s))))), old = shuffle(pool.filter(w => !nw.includes(w)));
+    const take = [...nw.slice(0, Math.ceil(n * 0.7)), ...old].slice(0, n);
+    while (take.length < n) take.push(rand(pool));
+    return shuffle(take);
+  };
+  const trailState = () => { if (!S.trail) S.trail = { at: 0, best: {} }; return S.trail; };
+  const wordSpans = t => t.split(" ").map(w => `<span class="w">${w}</span>`).join(" ");
+  // Fala uma lista de passos, acendendo cada parte enquanto fala.
+  const seqSay = (el, steps, done) => {
+    let j = 0;
+    const run = () => {
+      if (!el.isConnected) return;
+      el.querySelectorAll(".on").forEach(x => x.classList.remove("on"));
+      if (j >= steps.length) return done && done();
+      const s = steps[j++]; if (s.on) s.on.classList.add("on"); if (s.fn) s.fn();
+      sayThen(s.t, () => setTimeout(run, s.gap || 300), s.rate || 0.85);
+    };
+    run();
+  };
+  const readSyl = (el, syl, word, done) => seqSay(el, [...[...el.querySelectorAll(".sy")].map((sy, k) => ({ on: sy, t: syl[k].toLowerCase(), rate: 0.7 })), { on: el, t: word }], done);
+  const readWords = (el, text, done) => seqSay(el, [...[...el.querySelectorAll(".w")].map(w => ({ on: w, t: w.textContent.replace(/[.,!?:]/g, "").toLowerCase(), rate: 0.75, gap: 120 })), ...(text ? [{ t: text, rate: 0.85 }] : [])], done);
+
+  // Uma pergunta com opções. Errou: a certa brilha. done(true) só quando acertou de primeira.
+  function choiceItem({ show, q, opts, rightSay, help, cls }) {
+    return (area, glow, done, fb, setSpeak) => {
+      area.innerHTML = `${show || ""}<div class="choices">${opts.map((o, j) => `<button class="choice ${cls || ""}" data-j="${j}"${o.say ? ` data-say="${escapeHtml(o.say)}"` : ""}${cls === "word" ? " data-noread" : ""}>${o.html}</button>`).join("")}</div>
+        <div class="row">${help ? `<button class="btn soft" data-noread data-k="help">🔊 Ler comigo</button>` : ""}<button class="btn soft" data-noread data-k="rep">🔁 Repetir</button></div>`;
+      const bs = [...area.querySelectorAll(".choice")], right = bs[opts.findIndex(o => o.ok)];
+      right.dataset.r = "1";
+      let miss = 0, over = false;
+      const ask = () => say(q);
+      setSpeak(ask); fb.textContent = "";
+      area.querySelector('[data-k="rep"]').onclick = ask;
+      if (help) area.querySelector('[data-k="help"]').onclick = () => help(area);
+      if (glow) right.classList.add("glow");
+      bs.forEach((b, j) => b.onclick = () => {
+        if (over) return;
+        if (opts[j].ok) {
+          over = true; b.classList.remove("glow"); b.classList.add("right");
+          const m = rand(["Isso!", "Muito bem!", "Certinho!", "Isso mesmo!"]); fb.textContent = m;
+          sayThen(`${m} ${rightSay || ""}`, () => { if (area.isConnected) done(miss === 0); }, 0.9);
+        } else {
+          miss++; b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); right.classList.add("glow");
+          fb.textContent = "Olhe: a certa está brilhando.";
+          say(`${opts[j].say ? `Esse é ${opts[j].say}. ` : "Não é esse. "}Olhe, a certa está brilhando.`);
+        }
+      });
+      if (glow && help) sayThen(q, () => area.isConnected && help(area)); else ask();
+    };
+  }
+  const picOpts = (right, wrongs, f) => shuffle([{ ...f(right), ok: true }, ...wrongs.map(f)]);
+  const labOpt = ([e, t]) => ({ html: `<span>${e}</span><small>${t}</small>`, say: t.toLowerCase() });
+
+  const TGEN = {
+    vog: {
+      intro: () => "Vamos conhecer as vogais: a, é, i, ó, u.",
+      demo: (area, ctx, i, done) => {
+        area.innerHTML = `<div class="fam-row">${VOW.map(v => `<span>${v}</span>`).join("")}</div><div class="emoji-xl" id="dpic"></div>`;
+        const tiles = area.querySelectorAll(".fam-row span"), pic = area.querySelector("#dpic");
+        seqSay(area, VOW.map((v, k) => ({ on: tiles[k], fn: () => { pic.textContent = VOW_W[v][1]; }, t: `${letterName(v)}. ${letterName(v)} de ${VOW_W[v][0]}.` })), done);
+      },
+      items: (ctx, i, n) => Array.from({ length: n }, (_, k) => {
+        const v = rand(VOW), others = shuffle(VOW.filter(x => x !== v)).slice(0, 2);
+        if (k % 2) return choiceItem({ show: `<div class="emoji-xl">${VOW_W[v][1]}</div><p class="qtext">Com que letra começa ${VOW_W[v][0]}?</p>`, q: `Com que letra começa ${VOW_W[v][0]}?`,
+          cls: "word", opts: picOpts(v, others, x => ({ html: x, say: letterName(x) })), rightSay: `${VOW_W[v][0]} começa com ${letterName(v)}.` });
+        return choiceItem({ show: `<p class="qtext">Toque na letra que eu falar.</p>`, q: `Toque na letra ${letterName(v)}.`,
+          cls: "word", opts: picOpts(v, others, x => ({ html: x, say: letterName(x) })), rightSay: `${letterName(v)} de ${VOW_W[v][0]}.` });
+      })
+    },
+    fam: {
+      intro: i => `Hoje é a família do ${famName(TRAIL[i])}. Escute e olhe com atenção.`,
+      demo: (area, ctx, i, done) => {
+        const c = TRAIL[i], syl = famSyl(c), ex = TW.find(w => consOf(w.s[0]) === c);
+        area.innerHTML = `<div class="big-letter">${c}</div><div class="fam-row">${syl.map(s => `<span>${s}</span>`).join("")}</div><div class="emoji-xl" id="dpic"></div>`;
+        const tiles = [...area.querySelectorAll(".fam-row span")], pic = area.querySelector("#dpic");
+        const steps = syl.map((s, k) => ({ on: tiles[k], t: `${famName(c)} com ${letterName(s.slice(c.length))}: ${sylSay(s)}.` }));
+        steps.push({ on: area.querySelector(".fam-row"), t: syl.map(sylSay).join(", "), rate: 0.75 });
+        if (ex) steps.push({ fn: () => { pic.textContent = ex.e; }, t: `${ex.s[0].toLowerCase()}, de ${ex.w}.` });
+        seqSay(area, steps, done);
+      },
+      items: (ctx, i, n) => {
+        const c = TRAIL[i], syl = famSyl(c), L = [...learnedAt(i)].filter(x => x !== c);
+        const ws = shuffle(TW.filter(w => consOf(w.s[0]) === c && syl.includes(w.s[0])));
+        return Array.from({ length: n }, (_, k) => {
+          const w = k % 2 && ws.length ? ws[k % ws.length] : null;
+          const s = w ? w.s[0] : rand(syl);
+          const others = shuffle(syl.filter(x => x !== s)).slice(0, L.length && k > 2 ? 1 : 2);
+          while (others.length < 2) { const o = rand(famSyl(rand(L))); if (!others.includes(o) && o !== s) others.push(o); }
+          if (w) return choiceItem({ show: `<div class="emoji-xl">${w.e}</div><div class="read-word"><span class="sy blank-syl">?</span>${w.s.slice(1).map(x => `<span class="sy">${x}</span>`).join("")}</div>`,
+            q: `${w.w}. Qual sílaba começa ${w.w}?`, cls: "word", opts: picOpts(s, others, x => ({ html: x, say: sylSay(x) })), rightSay: `${sylSay(s)}. ${w.w}!` });
+          return choiceItem({ show: `<p class="qtext">Toque na sílaba que eu falar.</p>`, q: `Toque em ${sylSay(s)}.`, cls: "word", opts: picOpts(s, others, x => ({ html: x, say: sylSay(x) })), rightSay: sylSay(s) + "." });
+        });
+      }
+    },
+    pal: {
+      intro: () => "Agora vamos ler palavras. Eu leio devagar, pedacinho por pedacinho. Depois é a sua vez.",
+      demo: (area, ctx, i, done) => {
+        const ws = pickWords(i, 3); let k = 0;
+        const one = () => {
+          if (!area.isConnected) return;
+          if (k >= ws.length) return done();
+          const w = ws[k++];
+          area.innerHTML = `<div class="read-word">${spellHtml(w.s)}</div><div class="emoji-xl" style="visibility:hidden">${w.e}</div>`;
+          readSyl(area.querySelector(".read-word"), w.s, w.w, () => { if (!area.isConnected) return; area.querySelector(".emoji-xl").style.visibility = "visible"; setTimeout(one, 900); });
+        };
+        one();
+      },
+      items: (ctx, i, n) => pickWords(i, n).map(w => {
+        const pool = wordsAt(i).filter(x => x.e !== w.e && x.w !== w.w);
+        const sims = shuffle(pool).sort((a, b) => b.s.filter(s => w.s.includes(s)).length - a.s.filter(s => w.s.includes(s)).length);
+        return choiceItem({ show: `<div class="read-word">${spellHtml(w.s)}</div>`, q: "Leia a palavra. Qual é a figura?",
+          opts: picOpts(w, sims.slice(0, 2), x => ({ html: x.e, say: x.w })), rightSay: `${w.w}!`,
+          help: area => readSyl(area.querySelector(".read-word"), w.s, w.w) });
+      })
+    },
+    mon: {
+      intro: () => "Agora vamos montar palavras. Cada pedacinho é uma sílaba.",
+      demo: (area, ctx, i, done) => {
+        const ws = pickWords(i, 2); let k = 0;
+        const one = () => {
+          if (!area.isConnected) return;
+          if (k >= ws.length) return done();
+          const w = ws[k++];
+          area.innerHTML = `<div class="emoji-xl">${w.e}</div><div class="slots">${w.s.map(() => `<div class="slot"></div>`).join("")}</div>`;
+          const slots = area.querySelectorAll(".slot");
+          seqSay(area, [...w.s.map((s, j) => ({ fn: () => { slots[j].textContent = s; slots[j].classList.add("filled"); }, t: s.toLowerCase(), rate: 0.7 })), { t: w.w }], () => setTimeout(one, 700));
+        };
+        one();
+      },
+      items: (ctx, i, n) => pickWords(i, n).map(w => (area, glow, done, fb, setSpeak) => {
+        const L = [...learnedAt(i)], extra = rand(famSyl(rand(L)).filter(s => !w.s.includes(s)).concat(["LA"]).filter(s => !w.s.includes(s)));
+        area.innerHTML = `<div class="emoji-xl">${w.e}</div><div class="slots">${w.s.map(() => `<div class="slot"></div>`).join("")}</div>
+          <div class="choices">${shuffle([...w.s, ...(i > 12 ? [extra] : [])]).map(s => `<button class="choice word" data-noread data-s="${s}">${s}</button>`).join("")}</div>
+          <div class="row"><button class="btn soft" data-noread data-k="rep">🔁 Repetir</button></div>`;
+        const slots = area.querySelectorAll(".slot"), bs = [...area.querySelectorAll(".choice")];
+        let pos = 0, miss = 0;
+        const hint = () => { bs.forEach(b => b.classList.remove("glow")); const b = bs.find(x => !x.disabled && x.dataset.s === w.s[pos]); if (b) b.classList.add("glow"); };
+        const ask = () => say(`Monte a palavra ${w.w}. ${w.s.map(s => s.toLowerCase()).join(", ")}.`, 0.8);
+        setSpeak(ask); area.querySelector('[data-k="rep"]').onclick = ask; fb.textContent = "";
+        if (glow) hint();
+        bs.forEach(b => b.onclick = () => {
+          if (pos >= w.s.length || b.disabled) return;
+          if (b.dataset.s === w.s[pos]) {
+            slots[pos].textContent = b.dataset.s; slots[pos].classList.add("filled"); b.disabled = true; b.style.visibility = "hidden"; pos++;
+            if (pos === w.s.length) { const m = rand(["Isso!", "Muito bem!", "Montou!"]); fb.textContent = `${m} ${w.w}`; sayThen(`${m} ${w.w}!`, () => area.isConnected && done(miss === 0), 0.9); }
+            else { say(b.dataset.s.toLowerCase(), 0.75); if (glow || miss) hint(); }
+          } else {
+            miss++; b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); hint();
+            fb.textContent = "Olhe: a próxima está brilhando."; say(`Escute: ${w.s[pos].toLowerCase()}.`, 0.75);
+          }
+        });
+        ask();
+      })
+    },
+    fra: {
+      intro: () => "Agora vamos ler frases. Leia com calma, palavra por palavra.",
+      demo: (area, ctx, i, done) => {
+        const ss = shuffle(SENT).slice(0, 2); let k = 0;
+        const one = () => {
+          if (!area.isConnected) return;
+          if (k >= ss.length) return done();
+          const [t, e] = ss[k++];
+          area.innerHTML = `<p class="sentence">${wordSpans(t)}</p><div class="emoji-xl" style="visibility:hidden">${e}</div>`;
+          readWords(area.querySelector(".sentence"), t, () => { if (!area.isConnected) return; area.querySelector(".emoji-xl").style.visibility = "visible"; setTimeout(one, 1000); });
+        };
+        one();
+      },
+      items: (ctx, i, n) => shuffle(SENT).slice(0, n).map(([t, e]) => {
+        const others = shuffle(SENT.filter(x => x[1] !== e)).sort((a, b) => [...b[1]].filter(c => e.includes(c)).length - [...a[1]].filter(c => e.includes(c)).length).slice(0, 2);
+        return choiceItem({ show: `<p class="sentence">${wordSpans(t)}</p>`, q: "Leia a frase. Qual figura mostra a frase?", cls: "pic2",
+          opts: picOpts(e, others.map(x => x[1]), x => ({ html: x })), rightSay: t, help: area => readWords(area.querySelector(".sentence"), t) });
+      })
+    },
+    tex: {
+      intro: () => "Agora vamos ler uma historinha. Depois eu faço perguntas.",
+      demo: (area, ctx, i, done) => {
+        ctx.text = rand(TEXTS.filter(x => x !== ctx.last)); ctx.last = ctx.text;
+        area.innerHTML = `<p class="ttext">${wordSpans(ctx.text.t)}</p>`;
+        readWords(area.querySelector(".ttext"), null, done);
+      },
+      items: (ctx, i, n, glow) => (glow ? ctx.text.q.slice(0, 1) : ctx.text.q.slice(1)).map(([q, r, w]) => choiceItem({
+        show: `<p class="ttext">${wordSpans(ctx.text.t)}</p><p class="qtext">${q}</p>`, q, cls: "lab",
+        opts: picOpts(r, w, labOpt), rightSay: r[1] + ".", help: area => readWords(area.querySelector(".ttext"), null) }))
+    }
+  };
+
+  function trilha() {
+    shell("trilha", TAB_NAMES.trilha, (tab, p, setSpeak) => trailMap(p, setSpeak));
+  }
+  function trailMap(p, setSpeak) {
+    const T = trailState(), n = TRAIL.length, cur = Math.min(T.at, n - 1);
+    p.innerHTML = `<p class="hint">Cada estação tem 3 partes: 👂 escute, 🤝 juntos e ⭐ sozinha. Vá no seu ritmo.</p>
+      <button class="btn" id="tgo">${T.at >= n ? "🏆 Trilha completa! Treinar de novo" : `▶ ${T.at ? "Continuar" : "Começar"}: ${stName(cur)}`}</button>
+      <div class="trail-map">${TRAIL.map((k, i) => `<button class="tstation${T.best[i] != null ? " done" : ""}${i === T.at ? " here" : ""}" data-st="${i}" ${i > T.at ? "disabled" : ""} data-say="estação ${i + 1}. ${stName(i).toLowerCase()}"><b>${i > T.at ? "🔒" : stIcon(i)}</b><span>${i + 1}. ${isFam(k) ? "Família" : stName(i)}</span></button>`).join("")}</div>`;
+    const open = i => { p.innerHTML = ""; station(p, setSpeak, i); };
+    p.querySelector("#tgo").onclick = () => open(T.at >= n ? 0 : cur);
+    p.querySelectorAll("[data-st]").forEach(b => b.onclick = () => open(+b.dataset.st));
+    const m = T.at >= n ? "Você completou a trilha da leitura! Pode treinar qualquer estação." : `Esta é a trilha da leitura. Hoje vamos para a estação ${cur + 1}: ${stName(cur).toLowerCase()}.`;
+    setSpeak(() => say(m)); say(m);
+    const here = p.querySelector(".tstation.here"); if (here && here.scrollIntoView) here.scrollIntoView({ block: "nearest" });
+  }
+  function station(p, setSpeak, i) {
+    const k = TRAIL[i], G = TGEN[isFam(k) ? "fam" : k], T = trailState(), ctx = {};
+    p.innerHTML = `<p class="bal-level">Estação ${i + 1}: ${stName(i)}</p>
+      <div class="routine"><span data-ph="0">👂 Escute</span><span data-ph="1">🤝 Juntos</span><span data-ph="2">⭐ Sozinha</span></div>
+      <p class="hint" id="tcount"></p>
+      <div class="tarea" id="tarea"></div>
+      <div class="feedback" id="tfb"></div>
+      <div class="row" id="tbtns"></div>
+      <div class="row"><button class="btn soft" id="tback">🗺️ Voltar à trilha</button></div>`;
+    const area = p.querySelector("#tarea"), fb = p.querySelector("#tfb"), btns = p.querySelector("#tbtns"), count = p.querySelector("#tcount");
+    const phase = n => p.querySelectorAll(".routine span").forEach((s, j) => { s.classList.toggle("on", j === n); s.classList.toggle("done", j < n); });
+    const button = (html, id, fn) => { btns.insertAdjacentHTML("beforeend", `<button class="btn${id === "main" ? "" : " soft"}" data-noread id="tb-${id}">${html}</button>`); btns.querySelector(`#tb-${id}`).onclick = fn; };
+    p.querySelector("#tback").onclick = () => { p.innerHTML = ""; trailMap(p, setSpeak); };
+    const listenPhase = () => {
+      phase(0); btns.innerHTML = ""; fb.textContent = ""; count.textContent = "Escute e olhe.";
+      setSpeak(listenPhase);
+      sayThen(G.intro(i), () => area.isConnected && G.demo(area, ctx, i, () => {
+        if (!area.isConnected) return;
+        button("🔁 Ouvir de novo", "re", listenPhase); button("🤝 Vamos juntos", "main", together);
+        say("Agora vamos fazer juntos?");
+      }));
+    };
+    const run = (items, glow, end) => {
+      let j = 0, score = 0;
+      const next = () => {
+        if (!area.isConnected) return;
+        if (j >= items.length) return end(score, items.length);
+        count.textContent = `${j + 1} de ${items.length}`;
+        items[j++](area, glow, ok => {
+          if (ok) score++;
+          if (!glow) track(ok, null, isFam(k) || k === "vog" ? "letras" : "leitura");
+          setTimeout(next, 500);
+        }, fb, setSpeak);
+      };
+      next();
+    };
+    const together = () => {
+      phase(1); btns.innerHTML = ""; fb.textContent = "";
+      sayThen("Vamos juntos. A resposta certa vai brilhar.", () => area.isConnected && run(G.items(ctx, i, 3, true), true, () => {
+        area.innerHTML = ""; count.textContent = ""; fb.textContent = "Muito bem! Agora é a sua vez.";
+        button("🤝 Juntos de novo", "re", together); button("⭐ Agora eu faço sozinha", "main", alone);
+        say("Muito bem! Agora é a sua vez de fazer sozinha. Se precisar, eu ajudo.");
+      }));
+    };
+    const alone = () => {
+      phase(2); btns.innerHTML = ""; fb.textContent = "";
+      run(G.items(ctx, i, 5, false), false, finish);
+    };
+    const finish = (score, total) => {
+      area.innerHTML = ""; count.textContent = ""; phase(3);
+      const pass = score >= Math.max(1, total - 1);
+      if (pass) {
+        T.best[i] = Math.max(T.best[i] || 0, score); if (T.at <= i) T.at = i + 1; save(); star("trilha");
+        area.innerHTML = `<div class="emoji-xl">🏆</div>`;
+        fb.textContent = `Estação concluída! Você acertou ${score} de ${total}.`;
+        say(`${rand(praise)} Você terminou a estação ${stName(i).toLowerCase()} e ganhou uma estrela!`);
+        if (i + 1 < TRAIL.length) button("▶ Próxima estação", "main", () => { p.innerHTML = ""; station(p, setSpeak, i + 1); });
+        button("🔁 Fazer de novo", "re", listenPhase);
+      } else {
+        area.innerHTML = `<div class="emoji-xl">💪</div>`;
+        fb.textContent = `Você acertou ${score} de ${total}. Treinar deixa o cérebro forte!`;
+        say("Você se esforçou muito! Vamos treinar esta estação mais uma vez, juntos? Errar faz parte de aprender.");
+        button("🤝 Treinar de novo", "main", together); button("👂 Escutar de novo", "re", listenPhase);
+      }
+    };
+    listenPhase();
+  }
+
+  // ---------- Entender e pensar ----------
+  // Instruções curtas, ditas e escritas. Ajuda em degraus: 1º erro mostra a figura do passo, 2º erro faz a certa brilhar.
+  const ORD_THINGS = [
+    ["🐶", "o cachorro", "todos os cachorros"], ["🐱", "o gato", "todos os gatos"], ["🐰", "o coelho", "todos os coelhos"], ["🐸", "o sapo", "todos os sapos"],
+    ["🐟", "o peixe", "todos os peixes"], ["🐦", "o passarinho", "todos os passarinhos"], ["🐢", "a tartaruga", "todas as tartarugas"], ["🐴", "o cavalo", "todos os cavalos"],
+    ["⚽", "a bola", "todas as bolas"], ["🎈", "o balão", "todos os balões"], ["🚗", "o carro", "todos os carros"], ["🍎", "a maçã", "todas as maçãs"],
+    ["🍌", "a banana", "todas as bananas"], ["🌸", "a flor", "todas as flores"], ["⭐", "a estrela", "todas as estrelas"], ["🏠", "a casa", "todas as casas"]
+  ].map(([e, n, pl]) => ({ e, n, pl }));
+  const COLS = [{ n: ["vermelho", "vermelha"], b: "🔴", q: "🟥", h: "❤️" }, { n: ["azul", "azul"], b: "🔵", q: "🟦", h: "💙" }, { n: ["verde", "verde"], b: "🟢", q: "🟩", h: "💚" }, { n: ["amarelo", "amarela"], b: "🟡", q: "🟨", h: "💛" }];
+  const SHAPES = [{ k: "b", n: "a bolinha", f: 1 }, { k: "q", n: "o quadrado", f: 0 }, { k: "h", n: "o coração", f: 0 }];
+  const ORD_STAGES = ["Um passo", "Cor e forma", "Dois passos", "Grande e pequeno", "Toque em todos", "O que não é", "Três passos", "Tudo misturado"];
+  const tn = n => "n" + n; // "o gato" → "no gato"
+  function ordTask(lv) {
+    if (lv >= 7) lv = 1 + Math.floor(Math.random() * 6);
+    const th = shuffle(ORD_THINGS); let arr, steps;
+    const obj = (x, extra) => ({ e: x.e, n: x.n, ...extra });
+    if (lv === 0) { arr = th.slice(0, 4).map((x, j) => obj(x, { id: j })); steps = [{ t: `Toque ${tn(th[0].n)}`, ic: th[0].e, ids: [0] }]; }
+    if (lv === 2 || lv === 6) {
+      const n = lv === 2 ? 2 : 3; arr = th.slice(0, lv === 2 ? 6 : 8).map((x, j) => obj(x, { id: j }));
+      steps = th.slice(0, n).map((x, j) => ({ t: `${j === 0 ? "Toque" : j === n - 1 && n > 2 ? "Por último, toque" : "Depois, toque"} ${tn(x.n)}`, ic: x.e, ids: [j] }));
+    }
+    if (lv === 1) {
+      const all = []; SHAPES.forEach(s => COLS.forEach(c => all.push({ e: c[s.k], n: `${s.n} ${c.n[s.f]}`, s, c })));
+      const t = rand(all), sameS = shuffle(all.filter(x => x.s === t.s && x !== t)).slice(0, 2), sameC = shuffle(all.filter(x => x.c === t.c && x !== t)).slice(0, 2);
+      const rest = shuffle(all.filter(x => x !== t && !sameS.includes(x) && !sameC.includes(x))).slice(0, 1);
+      arr = [t, ...sameS, ...sameC, ...rest].map((x, j) => ({ e: x.e, n: x.n, id: j })); steps = [{ t: `Toque ${tn(t.n)}`, ic: t.e, ids: [0] }];
+    }
+    if (lv === 3) {
+      const [a, b, c] = th, big = Math.random() < 0.5, fem = a.n.startsWith("a ");
+      arr = [obj(a, { size: big ? "big" : "small", id: 0 }), obj(a, { size: big ? "small" : "big", id: 1 }), obj(b, { size: "big", id: 2 }), obj(b, { size: "small", id: 3 }), obj(c, { size: "big", id: 4 }), obj(c, { size: "small", id: 5 })];
+      steps = [{ t: `Toque ${tn(a.n)} ${big ? "grande" : fem ? "pequena" : "pequeno"}`, ic: a.e, ids: [0] }];
+    }
+    if (lv === 4) {
+      const [a, b, c] = th, nA = 2 + Math.floor(Math.random() * 2);
+      arr = [...Array.from({ length: nA }, (_, j) => obj(a, { id: j })), ...Array.from({ length: 8 - nA }, (_, j) => obj(j % 2 ? b : c, { id: 10 + j }))];
+      steps = [{ t: `Toque em ${a.pl}`, ic: a.e, ids: arr.filter(x => x.e === a.e).map(x => x.id), all: true }];
+    }
+    if (lv === 5) {
+      const [c, d] = shuffle(COLS), fill = shuffle(COLS).map(x => rand([{ e: x.b, n: `a bolinha ${x.n[1]}` }, { e: x.q, n: `o quadrado ${x.n[0]}` }]));
+      arr = [{ e: d.h, n: `o coração ${d.n[0]}`, id: 0 }, { e: c.h, n: `o coração ${c.n[0]}`, id: 1 }, { e: c.h, n: `o coração ${c.n[0]}`, id: 2 }, ...fill.slice(0, 3).map((x, j) => ({ ...x, id: 3 + j }))];
+      steps = [{ t: `Toque no coração que NÃO é ${c.n[0]}`, ic: d.h, ids: [0] }];
+    }
+    return { grid: shuffle(arr), steps };
+  }
+  function entender() {
+    shell("entender", TAB_NAMES.entender, (tab, p, setSpeak) => [siga, pense][tab](p, setSpeak));
+  }
+  function siga(p, setSpeak) {
+    if (S.ordLv == null) S.ordLv = 0;
+    let found = 0; const goal = 5;
+    const draw = () => {
+      const lv = Math.min(S.ordLv, 7), task = ordTask(lv);
+      let si = 0, miss = 0, stepMiss = 0, over = false; const got = new Set();
+      p.innerHTML = `<p class="bal-level">Nível ${lv + 1}: ${ORD_STAGES[lv]}</p>
+        <div class="steps">${task.steps.map((s, j) => `<div class="st" data-j="${j}"><span class="n">${j + 1}</span><span class="tx">${s.t}.</span><span class="ic" hidden>${s.ic}</span></div>`).join("")}</div>
+        <div class="obj-grid">${task.grid.map((o, j) => `<button class="obj ${o.size || ""}" data-j="${j}" aria-label="${o.n}">${o.e}</button>`).join("")}</div>
+        <div class="feedback" id="fb"></div>
+        <p class="bal-count">Acertos neste nível: <b>${found}</b> de ${goal}</p>
+        <div class="row"><button class="btn soft" data-noread id="orep">🔁 Repetir devagar</button><button class="btn soft" data-noread id="ohint">💡 Dica</button><button class="btn soft" id="oeasy">⬇ Mais fácil</button></div>`;
+      const sts = [...p.querySelectorAll(".st")], objs = [...p.querySelectorAll(".obj")], fb = p.querySelector("#fb");
+      const full = `Escute com atenção. ${task.steps.map(s => s.t).join(". ")}.`;
+      const mark = () => sts.forEach((s, j) => s.classList.toggle("now", j === si));
+      const targets = () => task.grid.map((o, j) => task.steps[si].ids.includes(o.id) ? j : -1).filter(j => j >= 0 && !got.has(j));
+      const hint = lvl => { sts[si].querySelector(".ic").hidden = false; if (lvl > 1) targets().forEach(j => objs[j].classList.add("glow")); };
+      const ask = () => say(full);
+      setSpeak(ask); mark();
+      p.querySelector("#orep").onclick = () => seqSay(p.querySelector(".steps"), task.steps.map((s, j) => ({ on: sts[j], t: s.t, rate: 0.75 })), mark);
+      p.querySelector("#ohint").onclick = () => { stepMiss = Math.max(stepMiss, 1); hint(1); say(task.steps[si].t, 0.8); };
+      p.querySelector("#oeasy").onclick = () => { if (S.ordLv > 0) { S.ordLv--; save(); } found = 0; draw(); };
+      objs.forEach((b, j) => b.onclick = () => {
+        if (over || got.has(j)) return;
+        const step = task.steps[si];
+        if (step.ids.includes(task.grid[j].id)) {
+          got.add(j); b.classList.remove("glow"); b.classList.add("right");
+          if (step.all && targets().length) { say(rand(["Isso!", "Mais um!", "Achou!"])); return; }
+          sts[si].classList.add("ok"); sts[si].querySelector(".n").textContent = "✓"; si++; stepMiss = 0;
+          objs.forEach(o => o.classList.remove("glow"));
+          if (si < task.steps.length) { mark(); say(rand(["Isso! E agora?", "Muito bem! Qual é o próximo?", "Certo! E depois?"])); return; }
+          over = true; mark();
+          const ok = miss <= 1; if (ok) found++;
+          track(miss === 0, null, "raciocinio");
+          const m = rand(praise);
+          if (found >= goal && S.ordLv < 7) {
+            S.ordLv++; save(); star("entender"); found = 0;
+            fb.textContent = `${m} Você subiu de nível! ⭐`;
+            return sayThen(`${m} Você fez tudo certinho. Subiu para o nível ${S.ordLv + 1}: ${ORD_STAGES[S.ordLv]}!`, () => p.isConnected && draw(), 0.9);
+          }
+          if (found >= goal) { found = 0; star("entender"); }
+          fb.textContent = ok ? m : "Conseguiu com ajuda! Vamos para a próxima.";
+          sayThen(ok ? `${m} Você fez o que eu pedi!` : "Você conseguiu com ajuda. Vamos para a próxima.", () => p.isConnected && setTimeout(draw, 300), 0.9);
+        } else {
+          miss++; stepMiss++; b.classList.remove("try"); void b.offsetWidth; b.classList.add("try");
+          const later = task.steps.slice(si + 1).some(s => s.ids.includes(task.grid[j].id));
+          hint(stepMiss);
+          const txt = later ? `Ainda não! Primeiro: ${step.t}.` : `Esse é ${task.grid[j].n}. ${step.t}.`;
+          fb.textContent = later ? "Ainda não! Olhe a ordem." : "Olhe a dica.";
+          say(txt, 0.85);
+        }
+      });
+      ask();
+    };
+    draw();
+  }
+
+  const PEN_STAGES = ["Para que serve?", "Como ele se sente?", "Qual não combina?", "O que vem depois?", "Tudo misturado"];
+  const SERVE = [
+    ["Com o que a gente corta papel?", ["✂️", "A tesoura"], [["🥄", "A colher"], ["🧦", "A meia"]], "A tesoura corta o papel."],
+    ["O que a gente usa quando chove?", ["☂️", "O guarda-chuva"], [["🕶️", "Os óculos de sol"], ["⚽", "A bola"]], "O guarda-chuva protege da chuva."],
+    ["Onde a gente dorme?", ["🛏️", "Na cama"], [["🛁", "Na banheira"], ["🚗", "No carro"]], "A gente dorme na cama."],
+    ["O que a gente calça nos pés?", ["👟", "O tênis"], [["🧢", "O boné"], ["🧤", "A luva"]], "O tênis vai nos pés."],
+    ["Com o que a gente toma sopa?", ["🥄", "A colher"], [["✂️", "A tesoura"], ["🖍️", "O giz de cera"]], "A sopa a gente toma com a colher."],
+    ["O que a gente usa para desenhar?", ["🖍️", "O giz de cera"], [["🍌", "A banana"], ["🧦", "A meia"]], "Com o giz de cera a gente desenha."],
+    ["O que é bem gelado?", ["🧊", "O gelo"], [["🔥", "O fogo"], ["☕", "O café quente"]], "O gelo é gelado."],
+    ["O que é muito quente?", ["🔥", "O fogo"], [["🧊", "O gelo"], ["⛄", "O boneco de neve"]], "O fogo é quente. Não pode mexer!"],
+    ["Quem faz miau?", ["🐱", "O gato"], [["🐶", "O cachorro"], ["🐄", "A vaca"]], "O gato faz miau."],
+    ["Quem faz au au?", ["🐶", "O cachorro"], [["🐱", "O gato"], ["🐸", "O sapo"]], "O cachorro faz au au."],
+    ["Onde a gente toma banho?", ["🚿", "No chuveiro"], [["🛏️", "Na cama"], ["🍳", "Na frigideira"]], "A gente toma banho no chuveiro."],
+    ["O que a gente lê?", ["📖", "O livro"], [["🍎", "A maçã"], ["👟", "O tênis"]], "A gente lê o livro."]
+  ];
+  const FEEL = [
+    ["A menina caiu e machucou o joelho. Como ela se sente?", ["😢", "Triste"], [["😄", "Feliz"], ["😴", "Com sono"]], "Quando a gente se machuca, fica triste. Tudo bem chorar e pedir ajuda."],
+    ["O menino ganhou um presente. Como ele se sente?", ["😄", "Feliz"], [["😢", "Triste"], ["😠", "Bravo"]], "Ganhar presente deixa a gente feliz."],
+    ["Pegaram o brinquedo dela sem pedir. Como ela se sente?", ["😠", "Brava"], [["😄", "Feliz"], ["😴", "Com sono"]], "Ela ficou brava. Ela pode dizer: me devolve, por favor."],
+    ["Já é noite e ele brincou o dia inteiro. Como ele se sente?", ["😴", "Com sono"], [["😠", "Bravo"], ["😨", "Com medo"]], "Depois de brincar muito, dá sono."],
+    ["Ela ouviu um trovão bem forte. Como ela se sente?", ["😨", "Com medo"], [["😄", "Feliz"], ["😴", "Com sono"]], "Trovão assusta. Um abraço ajuda o medo a passar."],
+    ["A amiga dela mudou para longe. Como ela se sente?", ["😢", "Triste"], [["😄", "Feliz"], ["😠", "Brava"]], "Ficar longe de quem a gente gosta dá saudade e tristeza."],
+    ["Ele montou a torre sozinho, bem alta. Como ele se sente?", ["😄", "Feliz"], [["😢", "Triste"], ["😨", "Com medo"]], "Conseguir sozinho deixa a gente feliz e orgulhoso."],
+    ["O irmão derrubou o castelo de areia dela de propósito. Como ela se sente?", ["😠", "Brava"], [["😄", "Feliz"], ["😴", "Com sono"]], "Ela ficou brava. Dá para respirar fundo e contar para um adulto."]
+  ];
+  const CATS = [
+    ["frutas", "uma fruta", ["🍎", "a maçã"], ["🍌", "a banana"], ["🍇", "a uva"], ["🍓", "o morango"], ["🍐", "a pera"], ["🍉", "a melancia"]],
+    ["animais", "um animal", ["🐶", "o cachorro"], ["🐱", "o gato"], ["🐰", "o coelho"], ["🐸", "o sapo"], ["🐴", "o cavalo"], ["🐄", "a vaca"]],
+    ["veículos", "um veículo", ["🚗", "o carro"], ["🚌", "o ônibus"], ["🚲", "a bicicleta"], ["✈️", "o avião"], ["🚂", "o trem"], ["🚀", "o foguete"]],
+    ["roupas", "uma roupa", ["👕", "a camiseta"], ["👖", "a calça"], ["👗", "o vestido"], ["🧦", "a meia"], ["🧢", "o boné"], ["👟", "o tênis"]],
+    ["brinquedos", "um brinquedo", ["⚽", "a bola"], ["🧸", "o ursinho"], ["🎈", "o balão"], ["🎲", "o dado"], ["🪁", "a pipa"], ["🪀", "o ioiô"]]
+  ];
+  const NEXT = [
+    [["🥚", "🐣"], "O pintinho nasceu do ovo. O que acontece depois?", ["🐔", "Ele vira galinha"], [["🐟", "Ele vira peixe"], ["🥚", "Ele volta para o ovo"]], "O pintinho cresce e vira galinha."],
+    [["🌱", "🌿"], "A sementinha brotou e cresceu. O que acontece depois?", ["🌳", "Vira uma árvore"], [["🔥", "Vira fogo"], ["🐛", "Vira lagarta"]], "A planta cresce e vira uma árvore."],
+    [["🐛", "🍃"], "A lagarta comeu muitas folhas e dormiu no casulo. O que acontece depois?", ["🦋", "Vira borboleta"], [["🐝", "Vira abelha"], ["🐞", "Vira joaninha"]], "A lagarta vira borboleta."],
+    [["🧊", "☀️"], "O gelo ficou no sol quente. O que acontece?", ["💧", "Derrete e vira água"], [["🧊", "Fica igual"], ["⛄", "Vira boneco de neve"]], "No calor, o gelo derrete e vira água."],
+    [["🌅", "☀️"], "Foi de manhã, depois de tarde. O que vem depois?", ["🌙", "A noite"], [["🌈", "O arco-íris"], ["🌧️", "A chuva"]], "Depois da tarde vem a noite."],
+    [["😴", "⏰"], "Ela estava dormindo e o despertador tocou. O que acontece depois?", ["🙂", "Ela acorda"], [["🌙", "Fica de noite"], ["🎂", "É aniversário"]], "Quando o despertador toca, a gente acorda."],
+    [["🎂", "🕯️"], "O bolo chegou e acenderam a velinha. O que a gente faz depois?", ["🎉", "Canta parabéns"], [["😴", "Vai dormir"], ["🧹", "Varre a casa"]], "A gente canta parabéns e assopra a velinha."],
+    [["🧼", "💧"], "Ele passou sabonete e lavou as mãos com água. Como ficam as mãos?", ["👐", "Limpas"], [["🎨", "Pintadas"], ["🍫", "Sujas de chocolate"]], "Com sabonete e água, as mãos ficam limpas."]
+  ];
+  function penItem(lv) {
+    const kind = lv >= 4 ? Math.floor(Math.random() * 4) : lv;
+    const qa = (q, r, w, why, show) => choiceItem({ show: (show || "") + `<p class="qtext">${q}</p>`, q, cls: "lab", opts: picOpts(r, w, labOpt), rightSay: why });
+    if (kind === 0) { const [q, r, w, why] = rand(SERVE); return qa(q, r, w, why); }
+    if (kind === 1) { const [q, r, w, why] = rand(FEEL); return qa(q, r, w, why); }
+    if (kind === 2) {
+      const [A, B] = shuffle(CATS), three = shuffle(A.slice(2)).slice(0, 3), odd = rand(B.slice(2));
+      return choiceItem({ show: `<p class="qtext">Qual não combina com os outros?</p>`, q: "Qual não combina com os outros?", cls: "lab",
+        opts: shuffle([{ ...labOpt(odd), ok: true }, ...three.map(labOpt)]), rightSay: `${cap(odd[1])} é ${B[1]}. Os outros são ${A[0]}.` });
+    }
+    const [seq, q, r, w, why] = rand(NEXT);
+    return qa(q, r, w, why, `<div class="seq-row">${seq.join(" ➜ ")} ➜ ❓</div>`);
+  }
+  function pense(p, setSpeak) {
+    if (S.penLv == null) S.penLv = 0;
+    let found = 0; const goal = 5;
+    const draw = () => {
+      const lv = Math.min(S.penLv, 4);
+      p.innerHTML = `<p class="bal-level">Nível ${lv + 1}: ${PEN_STAGES[lv]}</p><div class="tarea" id="parea"></div><div class="feedback" id="fb"></div>
+        <p class="bal-count">Acertos neste nível: <b>${found}</b> de ${goal}</p>
+        <div class="row"><button class="btn soft" id="peasy">⬇ Mais fácil</button></div>`;
+      p.querySelector("#peasy").onclick = () => { if (S.penLv > 0) { S.penLv--; save(); } found = 0; draw(); };
+      const fb = p.querySelector("#fb");
+      penItem(lv)(p.querySelector("#parea"), false, ok => {
+        track(ok, null, "raciocinio");
+        if (ok) found++;
+        if (found >= goal) {
+          found = 0; star("entender");
+          if (S.penLv < 4) { S.penLv++; save(); fb.textContent = "Você subiu de nível! ⭐"; return sayThen(`Uau! Você subiu para o nível ${S.penLv + 1}: ${PEN_STAGES[S.penLv]}`, () => p.isConnected && draw(), 0.9); }
+        }
+        setTimeout(() => p.isConnected && draw(), 600);
+      }, fb, setSpeak);
+    };
+    draw();
   }
 
   // ---------- Vamos conversar ----------
@@ -2831,6 +3393,13 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
         ${(() => { const hard = Object.entries(S.words).filter(([, r]) => r.miss > r.ok).sort((x, y) => y[1].miss - x[1].miss).slice(0, 12);
           return hard.length ? `<div class="prose"><h3>Palavras para treinar</h3><p class="hint">Palavras em que a criança precisou de ajuda na leitura. Toque para ouvir.</p><div class="row" style="justify-content:flex-start">${hard.map(([w]) => `<button class="tab" data-say="${w}">${w}</button>`).join("")}</div></div>` : ""; })()}
         <div class="prose">
+          <h3>Trilha da leitura</h3>
+          <p>A trilha ensina a ler na ordem em que a alfabetização costuma acontecer: vogais, famílias silábicas (BA BE BI BO BU), palavras, frases e pequenos textos com perguntas. Cada estação tem sempre as mesmas 3 partes: o app mostra (👂), faz junto com a resposta certa brilhando (🤝) e depois a criança faz sozinha (⭐). Ela passa de estação acertando 4 de 5 de primeira; se não passar, o app convida a treinar de novo, sem bronca.</p>
+          <p>Em <b>Entender e pensar</b>, o app dá pedidos curtos (falados e escritos) e ajuda em degraus: no 1º erro mostra a figura do passo, no 2º a resposta brilha. A cada 5 acertos sobe de nível.</p>
+          <label class="setting" for="tat"><span>Estação liberada na trilha</span><select id="tat">${TRAIL.map((k, i) => `<option value="${i}">${i + 1}. ${stName(i)}</option>`).join("")}</select></label>
+          <p class="hint">Se ela já conhece as vogais ou algumas famílias, vocês podem liberar estações mais à frente.</p>
+        </div>
+        <div class="prose">
           <h3>Como usar no dia a dia</h3>
           <ul>
             <li><b>Pouco e sempre:</b> 10 a 15 minutos por dia funcionam melhor que uma hora no fim de semana.</li>
@@ -2864,6 +3433,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     document.getElementById("hear").onclick = () => say("Área dos pais.");
     const $ = id => document.getElementById(id);
     app.querySelectorAll("[data-say]").forEach(b => b.onclick = () => say(b.dataset.say, 0.6));
+    $("tat").value = String(Math.min(trailState().at, TRAIL.length - 1)); $("tat").onchange = e => { trailState().at = Math.max(+e.target.value, 0); save(); };
     $("lim").onchange = e => { S.limit.mins = +e.target.value; save(); };
     $("bf").onchange = e => { S.limit.bedFree = e.target.checked; save(); };
     $("newpin").onclick = () => { S.pin = ""; save(); parentUntil = 0; gate(() => go("pais")); };
@@ -2893,12 +3463,12 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
   S.voice = true; if (S.tap2 === undefined) S.tap2 = true;
   applyPrefs();
   const start = (location.hash || "").slice(1);
-  go(["numeros", "letras", "leitura", "fala", "cerebro", "conversa", "fora", "calma", "dormir", "pais", "avaliar", "relatorio"].includes(start) ? start : "splash");
+  go(["trilha", "entender", "numeros", "letras", "leitura", "fala", "cerebro", "conversa", "fora", "calma", "dormir", "pais", "avaliar", "relatorio"].includes(start) ? start : "splash");
 })();
 </script>
 
 <script>
-  window.APP_BUILT = "05/10/2026 23:18";
+  window.APP_BUILT = "07/10/2026 20:07";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
