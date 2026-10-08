@@ -533,7 +533,8 @@ body.night {
   ];
   const LV = () => LEVELS[S.level || 2];
   const TAB_NAMES = { trilha: ["Trilha"], entender: ["Siga o pedido", "Pense e responda"], numeros: ["Contar", "Qual tem mais?", "Continhas"], letras: ["Primeira letra", "Montar palavra", "Balões de letras"], leitura: ["Ler palavras", "Ler um texto", "Soletrar"], conversa: ["Conversar"], fala: ["Ginástica da boca", "Sílabas", "Trava-línguas"], cerebro: ["Jogo da memória", "Siga a sequência", "O que vem depois?", "Jogo da velha"], fora: ["Missão"], calma: ["Respirar"] };
-  const today = () => new Date().toISOString().slice(0, 10);
+  // Data do aparelho (horário local). Com toISOString o dia virava às 21h no Brasil e a rotina recomeçava.
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   const planKey = (a, t) => a + ":" + t;
   const markPlan = (area, tab) => { if (S.plan.day !== today()) S.plan = { day: today(), done: [] }; const k = planKey(area, tab); if (!S.plan.done.includes(k)) S.plan.done.push(k); save(); };
 
@@ -3523,6 +3524,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
           <label class="setting" for="bf"><span>Hora de dormir fora da conta do tempo</span><input id="bf" type="checkbox" ${S.limit.bedFree ? "checked" : ""} style="width:28px;height:28px"></label>
           <div class="setting"><span>Hoje: ${Math.round(usage().secs / 60)} min usados${usage().extra ? `, ${usage().extra} min extras liberados` : ""}</span><button class="btn soft" id="newpin">Trocar senha</button></div>
           <label class="setting" for="rtOn"><span>Rotina guiada: o app escolhe as tarefas do dia e os jogos só abrem depois delas</span><input id="rtOn" type="checkbox" ${S.routine !== false ? "checked" : ""} style="width:28px;height:28px"></label>
+          ${routineOn() && !gamesOpen() ? `<div class="setting"><span>Rotina de hoje: tarefa ${routine().i + 1} de ${routine().tasks.length} (${routine().tasks[routine().i].n})</span><button class="btn soft" id="rtSkip">Pular esta tarefa</button></div>` : ""}
           <label class="setting" for="t2"><span>Ler a opção no 1º toque e escolher no 2º toque</span><input id="t2" type="checkbox" ${S.tap2 ? "checked" : ""} style="width:28px;height:28px"></label>
           <label class="setting" for="vn"><span>Voz</span><select id="vn" style="max-width:100%"><option value="">Automática (a mais natural)</option>${ptVoices.map(v => `<option value="${escapeHtml(v.name)}" ${S.voiceName === v.name ? "selected" : ""}>${escapeHtml(v.name.replace(/^(Microsoft|Google)\s*/, ""))}${v.localService ? "" : " (com internet)"}</option>`).join("")}</select><button class="btn soft" id="vtest">▶ Ouvir</button></label>
           <label class="setting" for="rt"><span>Velocidade da voz</span><select id="rt"><option value="0.8">Devagar</option><option value="0.9">Calma</option><option value="1">Normal</option></select></label>
@@ -3545,6 +3547,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     $("nm").oninput = e => { S.name = e.target.value.trim(); save(); };
     $("ag").value = String(S.age || ""); $("ag").onchange = e => { setAge(+e.target.value, false); go("pais"); };
     $("forget").onclick = () => { S.bed = { facts: {}, saga: "" }; save(); $("forget").textContent = "Respostas apagadas"; };
+    if ($("rtSkip")) $("rtSkip").onclick = () => { const R = routine(); R.i++; R.n = 0; save(); go("pais"); };
     $("rtOn").onchange = e => { S.routine = e.target.checked; save(); };
     $("t2").onchange = e => { S.tap2 = e.target.checked; save(); };
     $("rt").onchange = e => { S.rate = +e.target.value; save(); say("Assim fica a minha voz."); };
@@ -3573,7 +3576,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "07/10/2026 20:19";
+  window.APP_BUILT = "07/10/2026 21:24";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
