@@ -364,6 +364,17 @@ body.night {
 .rtbar b { white-space: nowrap; }
 .rtdone { position: fixed; left: 12px; right: 12px; bottom: 16px; z-index: 50; max-width: 520px; margin: 0 auto; padding: 16px; border-radius: 24px; background: var(--surface); border: 3px solid var(--ok); box-shadow: 0 10px 40px rgba(0,0,0,.25); text-align: center; display: grid; gap: 8px; }
 .rtdone .emoji-xl { font-size: 3em; } .rtdone p { margin: 0; font-size: 1.15em; }
+.mode2 { display: grid; gap: 8px; justify-items: center; width: 100%; }
+.p2pick { display: grid; gap: 6px; justify-items: center; }
+.mode2 .chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); font-weight: 700; font-size: .9em; }
+.mode2 .chip[aria-pressed="true"] { border-color: var(--tone, var(--sage)); background: var(--tone-soft, var(--sage-soft)); }
+.mrow { gap: 8px; }
+.p2pick .chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--bg); color: var(--ink); font-weight: 700; }
+.p2pick .chip[aria-pressed="true"] { border-color: var(--tone, var(--sage)); background: var(--tone-soft, var(--sage-soft)); }
+.turns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.turns span { padding: 8px 16px; border-radius: 999px; border: 2px solid var(--line); font-weight: 700; color: var(--muted); }
+.turns span.on { border-color: var(--sun); background: var(--sun-soft); color: var(--ink); box-shadow: 0 0 0 3px var(--sun-soft); }
+.turn-now { margin: 0; font-size: 1.3em; font-weight: 700; min-height: 1.4em; }
 .calm-motion *, .calm-motion *::before { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 @media (max-width: 480px) {
@@ -3161,15 +3172,82 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     "Hoje eu ganhei, amanhã pode ser você. Quem joga de novo fica cada vez melhor!",
     "Ninguém ganha sempre, nem eu. O importante é brincar. Mais uma?"
   ];
+  // ---------- Dois jogadores (no mesmo celular, revezando) ----------
+  const TWO_NAMES = ["Papai", "Mamãe", "Irmão", "Irmã", "Vovó", "Vovô", "Amigo", "Amiga"];
+  const PICS2 = ["⭐", "🌙"];
+  const players = () => [S.name || "Criança", S.p2 || "Papai"];
+  // Barra no topo do jogo: sozinha ou com mais alguém. restart() desenha o jogo de novo no modo escolhido.
+  let pickOpen = false;
+  const modeHtml = () => `<div class="mode2"><div class="row mrow">
+      <button class="chip" data-mode="1" aria-pressed="${!S.two}">👤 Sozinha</button><button class="chip" data-mode="2" aria-pressed="${!!S.two}">👥 ${S.two ? `Com ${escapeHtml(players()[1])}` : "Dois jogadores"}</button>${S.two ? `<button class="chip" data-mode="pick" aria-label="Trocar quem joga">✏️</button>` : ""}</div>
+      ${S.two && pickOpen ? `<div class="p2pick"><span class="hint">Quem joga com ${escapeHtml(players()[0])}?</span><div class="row">${TWO_NAMES.map(n => `<button class="chip" data-p2="${n}" aria-pressed="${players()[1] === n}">${n}</button>`).join("")}</div></div>` : ""}</div>`;
+  const bindMode = (p, restart) => {
+    p.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+      if (b.dataset.mode === "pick") pickOpen = !pickOpen;
+      else { const two = b.dataset.mode === "2"; pickOpen = two && !S.two && !S.p2; S.two = two; save(); }
+      p.innerHTML = ""; restart();
+    });
+    p.querySelectorAll("[data-p2]").forEach(b => b.onclick = () => { S.p2 = b.dataset.p2; pickOpen = false; save(); p.innerHTML = ""; restart(); });
+  };
+  // Placar de dois jogadores, com destaque para quem joga agora.
+  const makeTurns = (p, first) => {
+    const t = { cur: first || 0, sc: [0, 0] };
+    t.html = () => `<div class="turns" id="turns">${players().map((n, k) => `<span class="${k === t.cur ? "on" : ""}">${PICS2[k]} ${escapeHtml(n)} <b>${t.sc[k]}</b></span>`).join("")}</div>`;
+    t.draw = () => { const el = p.querySelector("#turns"); if (el) el.outerHTML = t.html(); };
+    t.name = () => players()[t.cur];
+    t.next = () => { t.cur ^= 1; t.draw(); };
+    t.point = () => { t.sc[t.cur]++; t.draw(); };
+    t.end = () => { const [a, b] = t.sc, n = players(); return a === b ? `Empate! ${n[0]} e ${n[1]} fizeram ${a} pontos cada. Que time!` : `${n[a > b ? 0 : 1]} fez mais pontos desta vez. Parabéns aos dois por jogarem juntos!`; };
+    return t;
+  };
+
+  function velha2(p, setSpeak) {
+    const b = Array(9).fill(null), n = players(), first = tttGames++ % 2;
+    let cur = first, over = false;
+    p.innerHTML = modeHtml() + `<p class="hint">${escapeHtml(n[0])} é a ⭐ e ${escapeHtml(n[1])} é a 🌙. Façam três em linha, um de cada vez.</p>
+      <p class="turn-now" id="tn"></p>
+      <div class="ttt" id="ttt">${b.map((_, i) => `<button class="cell" data-i="${i}" aria-label="Casa ${i + 1}"></button>`).join("")}</div>
+      <p class="ttt-score">⭐ ${escapeHtml(n[0])}: <b>${ttt2[0]}</b> · 🌙 ${escapeHtml(n[1])}: <b>${ttt2[1]}</b></p>
+      <div class="feedback" id="fb"></div>
+      <div class="row"><button class="btn soft" id="next">Jogar de novo</button></div>`;
+    bindMode(p, () => velha(p, setSpeak));
+    const cells = [...p.querySelectorAll(".cell")], fb = p.querySelector("#fb"), tn = p.querySelector("#tn");
+    const showTurn = () => { tn.textContent = `Vez de ${n[cur]} ${PICS2[cur]}`; };
+    cells.forEach(c => c.onclick = () => {
+      const i = +c.dataset.i;
+      if (over || b[i]) return;
+      b[i] = cur ? "a" : "k"; c.textContent = PICS2[cur]; c.classList.add(cur ? "app" : "kid"); c.disabled = true;
+      const r = winner(b);
+      if (r) {
+        over = true; cells.forEach(x => x.disabled = true); tn.textContent = "";
+        if (r.line) r.line.forEach(k => cells[k].classList.add("win"));
+        let m;
+        if (r.who === "empate") m = "Deu velha! Ninguém ganhou. Os dois jogaram bem!";
+        else { ttt2[cur]++; m = `${n[cur]} ganhou! Parabéns! ${n[cur ^ 1]}, perder faz parte do jogo. Vamos de novo?`; }
+        star("cerebro"); fb.textContent = m; say(m);
+        p.querySelector(".ttt-score").innerHTML = `⭐ ${escapeHtml(n[0])}: <b>${ttt2[0]}</b> · 🌙 ${escapeHtml(n[1])}: <b>${ttt2[1]}</b>`;
+        return;
+      }
+      cur ^= 1; showTurn(); say(`Agora quem joga é ${n[cur]}.`);
+    });
+    p.querySelector("#next").onclick = () => { p.innerHTML = ""; velha(p, setSpeak); };
+    showTurn();
+    const instr = `Jogo da velha para dois! Quem começa é ${n[first]}.`;
+    setSpeak(() => say(instr)); say(instr);
+  }
+  const ttt2 = [0, 0];
+
   function velha(p, setSpeak) {
+    if (S.two) return velha2(p, setSpeak);
     const lv = skLv("raciocinio"), b = Array(9).fill(null);
     let over = false, busy = false;
     const appFirst = tttGames++ % 2 === 1; // uma partida ela começa, na outra o app começa
-    p.innerHTML = `<p class="hint">Você é a ⭐. Faça três ⭐ em linha: deitada, em pé ou torta.</p>
+    p.innerHTML = modeHtml() + `<p class="hint">Você é a ⭐. Faça três ⭐ em linha: deitada, em pé ou torta.</p>
       <div class="ttt" id="ttt">${b.map((_, i) => `<button class="cell" data-i="${i}" aria-label="Casa ${i + 1}"></button>`).join("")}</div>
       <p class="ttt-score">⭐ Você: <b id="sk">${tttScore.kid}</b> · 🌙 App: <b id="sa">${tttScore.app}</b></p>
       <div class="feedback" id="fb"></div>
       <div class="row"><button class="btn soft" id="next">Jogar de novo</button></div>`;
+    bindMode(p, () => velha(p, setSpeak));
     const cells = [...p.querySelectorAll(".cell")], fb = p.querySelector("#fb");
     const put = (i, who) => { b[i] = who; cells[i].textContent = who === "k" ? "⭐" : "🌙"; cells[i].classList.add(who === "k" ? "kid" : "app"); cells[i].disabled = true; };
     const finish = r => {
@@ -3246,7 +3324,8 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     };
     setup();
     target = rand(set);
-    p.innerHTML = `<p class="bal-level" id="bl"></p><p class="hint" id="bh"></p>
+    const T = S.two ? makeTurns(p) : null;
+    p.innerHTML = modeHtml() + (T ? T.html() : "") + `<p class="bal-level" id="bl"></p><p class="hint" id="bh"></p>
       <div class="sky-box" id="sky" aria-live="off"></div>
       <p class="bal-count">Acertos neste nível: <b id="bc">0</b> de ${goal}</p>
       <div class="feedback" id="fb"></div>
@@ -3261,7 +3340,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       if (st.kind === "digrafo") return `Encontre o ${DIG[target][0]}, ${DIG[target][1]}.`;
       return `Encontre ${st.kind === "silaba" ? "a sílaba" : "a palavra"} ${target.toLowerCase()}.`;
     };
-    const ask = () => { bh.textContent = `Encontre ${what()}`; const t = askText(); setSpeak(() => say(t)); say(t); };
+    const ask = () => { bh.textContent = `${T ? `Vez de ${T.name()}: e` : "E"}ncontre ${what()}`; const t = (T ? `${T.name()}! ` : "") + askText(); setSpeak(() => say(t)); say(t); };
     const label = (bl, it) => { bl.L = it; bl.el.textContent = it; bl.el.dataset.l = it; bl.el.classList.toggle("w2", it.length >= 2 && it.length <= 3); bl.el.classList.toggle("w4", it.length >= 4); };
     const pickItem = () => {
       const have = balls.filter(x => x.L === target).length;
@@ -3309,6 +3388,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
       if (lock || el.classList.contains("pop")) return;
       if (bl.L === target) {
         el.classList.add("pop"); found++; p.querySelector("#bc").textContent = found;
+        if (T) { T.point(); T.next(); }
         star("letras");
         setTimeout(() => spawn(bl), 350);
         const m = rand(["Isso!", "Achou!", "Muito bem!", "Pou!"]);
@@ -3346,6 +3426,9 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     const prevClean = cleanup; cleanup = () => { cancelAnimationFrame(raf); prevClean && prevClean(); };
     p.querySelector("#hearL").onclick = () => ask();
     p.querySelector("#easier").onclick = () => { if (S.balStage > 0) { S.balStage--; save(); } cancelAnimationFrame(raf); p.innerHTML = ""; baloes(p, setSpeak); };
+    bindMode(p, () => { cancelAnimationFrame(raf); baloes(p, setSpeak); });
+    // O céu dos balões precisa caber na tela: se ficou para baixo, rola até ele.
+    setTimeout(() => { const r = sky.getBoundingClientRect(); if (sky.isConnected && r.bottom > innerHeight && sky.scrollIntoView) sky.scrollIntoView({ block: "end", behavior: "smooth" }); }, 300);
     ask();
   }
   function cerebro() {
@@ -3356,11 +3439,14 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     const start = () => {
       const deck = shuffle(shuffle(MEM_EMO).slice(0, pairs).flatMap(e => [e, e]));
       let open = [], found = 0, lock = false;
-      p.innerHTML = `<p class="hint">Vire duas cartas. Encontre os pares iguais.</p>
+      const T = S.two ? makeTurns(p) : null;
+      p.innerHTML = modeHtml() + (T ? T.html() : "") + `<p class="hint">${T ? "Cada um vira duas cartas. Achou um par, joga de novo. Errou, passa a vez." : "Vire duas cartas. Encontre os pares iguais."}</p>
         <div class="tabs" style="justify-content:center">${[3, 4, 6, 8, 12].map(n => `<button class="tab" data-n="${n}" aria-selected="${n === pairs}">${n} pares</button>`).join("")}</div>
         <div class="memory${pairs >= 12 ? " big" : ""}" style="grid-template-columns:repeat(${pairs === 3 ? 3 : 4},minmax(0,1fr))">${deck.map((e, k) => `<button class="mcard" data-k="${k}" aria-label="Carta ${k + 1}"></button>`).join("")}</div>
         <div class="feedback" id="fb"></div>`;
       p.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { pairs = +b.dataset.n; S.memPairs = pairs; save(); start(); });
+      bindMode(p, start);
+      if (T) say(`Jogo da memória para dois. Quem começa é ${T.name()}.`);
       p.querySelectorAll(".mcard").forEach(c => c.onclick = () => {
         if (lock || c.classList.contains("open") || c.classList.contains("done")) return;
         c.classList.add("open"); c.textContent = deck[c.dataset.k]; open.push(c);
@@ -3368,11 +3454,12 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
           const [a, b] = open; open = [];
           if (deck[a.dataset.k] === deck[b.dataset.k]) {
             a.classList.add("done"); b.classList.add("done"); found++;
-            if (found === pairs) { const m = rand(praise); p.querySelector("#fb").textContent = `${m} Você achou todos!`; say(`${m} Você achou todos os pares!`); star("cerebro"); track(true, p, "memoria"); }
-            else say("Par!");
+            if (T) T.point();
+            if (found === pairs) { const m = T ? T.end() : `${rand(praise)} Você achou todos!`; p.querySelector("#fb").textContent = m; say(T ? m : `${m.replace("Você achou todos!", "")} Você achou todos os pares!`); star("cerebro"); track(true, p, "memoria"); }
+            else say(T ? `Par! ${T.name()} joga de novo.` : "Par!");
           } else {
             lock = true;
-            setTimeout(() => { a.classList.remove("open"); b.classList.remove("open"); a.textContent = ""; b.textContent = ""; lock = false; }, 1200);
+            setTimeout(() => { a.classList.remove("open"); b.classList.remove("open"); a.textContent = ""; b.textContent = ""; lock = false; if (T) { T.next(); say(`Agora é a vez de ${T.name()}.`); } }, 1200);
           }
         }
       });
@@ -3383,41 +3470,50 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
   }
   function sequencia(p, setSpeak) {
     let seq = [], step = 0, busy = false, timers = [];
+    const T = S.two ? makeTurns(p) : null;
     cleanup = () => timers.forEach(clearTimeout);
-    p.innerHTML = `<p class="hint">Olhe os bichinhos acenderem. Depois toque na mesma ordem. Sem pressa.</p>
+    p.innerHTML = modeHtml() + (T ? T.html() : "") + `<p class="hint">${T ? "Um de cada vez: olhe os bichinhos acenderem e repita a ordem. Cada rodada fica um pouco maior." : "Olhe os bichinhos acenderem. Depois toque na mesma ordem. Sem pressa."}</p>
       <div class="simon">${PADS.map((d, i) => `<button class="pad" data-i="${i}" style="background:${d.c}" aria-label="${d.n}">${d.e}</button>`).join("")}</div>
       <div class="row"><button class="btn" id="go">Começar</button><button class="btn soft" id="again">Mostrar de novo</button></div>
       <div class="feedback" id="fb"></div>`;
+    bindMode(p, () => { timers.forEach(clearTimeout); sequencia(p, setSpeak); });
     const pads = p.querySelectorAll(".pad"), fb = p.querySelector("#fb");
     const flash = i => { pads[i].classList.add("lit"); timers.push(setTimeout(() => pads[i].classList.remove("lit"), 600)); };
     const play = () => {
       busy = true; step = 0; fb.textContent = "Olhe…";
       seq.forEach((v, k) => timers.push(setTimeout(() => flash(v), 900 * k + 400)));
-      timers.push(setTimeout(() => { busy = false; fb.textContent = "Sua vez!"; }, 900 * seq.length + 400));
+      timers.push(setTimeout(() => { busy = false; fb.textContent = T ? `Vez de ${T.name()}!` : "Sua vez!"; }, 900 * seq.length + 400));
     };
     const grow = () => { seq.push(Math.floor(Math.random() * 4)); play(); };
-    p.querySelector("#go").onclick = () => { seq = Array.from({ length: LVs("memoria").seq - 1 }, () => Math.floor(Math.random() * 4)); grow(); say("Olhe com atenção."); };
+    p.querySelector("#go").onclick = () => { seq = Array.from({ length: LVs("memoria").seq - 1 }, () => Math.floor(Math.random() * 4)); grow(); say(T ? `${T.name()}, olhe com atenção.` : "Olhe com atenção."); };
     p.querySelector("#again").onclick = () => { if (seq.length) play(); };
     pads.forEach(b => b.onclick = () => {
       if (busy || !seq.length) return;
       const i = +b.dataset.i; flash(i);
       if (i === seq[step]) {
         step++;
-        if (step === seq.length) { star("cerebro"); track(true, p, "memoria"); fb.textContent = `${rand(praise)} Agora com ${seq.length + 1}.`; busy = true; timers.push(setTimeout(grow, 1300)); }
+        if (step === seq.length) {
+          star("cerebro"); track(true, p, "memoria"); busy = true;
+          if (T) { T.point(); T.next(); fb.textContent = `${rand(praise)} Agora é a vez de ${T.name()}, com ${seq.length + 1}.`; say(fb.textContent); timers.push(setTimeout(grow, 2600)); }
+          else { fb.textContent = `${rand(praise)} Agora com ${seq.length + 1}.`; timers.push(setTimeout(grow, 1300)); }
+        }
       } else {
         track(false, p, "memoria"); fb.textContent = "Tudo bem! Vou mostrar de novo."; say("Tudo bem! Vou mostrar de novo."); timers.push(setTimeout(play, 1400));
       }
     });
     setSpeak(() => say("Olhe os bichinhos acenderem. Depois toque na mesma ordem."));
   }
+  let padTurns = null;
   function padrao(p, setSpeak) {
+    if (!S.two) padTurns = null; else if (!padTurns) padTurns = makeTurns(p);
+    const T = S.two ? padTurns : null;
     const base = rand(PAT.filter(b => b.length <= LVs("raciocinio").patMax));
     const reps = base.length === 2 ? 3 : 2;
     const shown = Array.from({ length: base.length * reps - 1 }, (_, k) => base[k % base.length]);
     const answer = base[shown.length % base.length];
     const pool = [...new Set(PAT.flat())];
     const opts = shuffle([answer, ...shuffle(pool.filter(x => x !== answer && !base.includes(x))).slice(0, 1), ...base.filter(x => x !== answer).slice(0, 1)]);
-    p.innerHTML = `<p class="hint">Olhe a fila. Qual vem depois?</p>
+    p.innerHTML = modeHtml() + (T ? T.html() : "") + `<p class="hint">${T ? `Vez de ${escapeHtml(T.name())}. ` : ""}Olhe a fila. Qual vem depois?</p>
       <div class="pattern">${shown.map(x => `<span>${x}</span>`).join("")}<span class="q">?</span></div>
       <div class="choices">${opts.map(o => `<button class="choice" data-o="${o}">${o}</button>`).join("")}</div>
       <div class="feedback" id="fb"></div>
@@ -3425,11 +3521,13 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
     let done = false;
     p.querySelectorAll(".choice").forEach(b => b.onclick = () => {
       if (done) return;
-      if (b.dataset.o === answer) { done = true; b.classList.add("right"); p.querySelector(".q").textContent = answer; p.querySelector(".q").style.fontSize = "1em"; const m = rand(praise); p.querySelector("#fb").textContent = m; say(m); star("cerebro"); track(true, p, "raciocinio"); }
+      if (b.dataset.o === answer) { done = true; b.classList.add("right"); p.querySelector(".q").textContent = answer; p.querySelector(".q").style.fontSize = "1em"; const m = rand(praise); p.querySelector("#fb").textContent = m; say(T ? `${m} Ponto para ${T.name()}.` : m); if (T) T.point(); star("cerebro"); track(true, p, "raciocinio"); }
       else { b.classList.remove("try"); void b.offsetWidth; b.classList.add("try"); track(false, p, "raciocinio"); p.querySelector("#fb").textContent = "Olhe de novo, um por um."; say("Olhe de novo, um por um."); }
     });
-    p.querySelector("#next").onclick = () => { p.innerHTML = ""; padrao(p, setSpeak); };
-    setSpeak(() => say("Olhe a fila. Qual vem depois?")); say("Olhe a fila. Qual vem depois?");
+    p.querySelector("#next").onclick = () => { if (T) T.next(); p.innerHTML = ""; padrao(p, setSpeak); };
+    bindMode(p, () => { padTurns = null; padrao(p, setSpeak); });
+    const pi = T ? `${T.name()}, olhe a fila. Qual vem depois?` : "Olhe a fila. Qual vem depois?";
+    setSpeak(() => say(pi)); say(pi);
   }
 
   // ---------- Fora da tela ----------
@@ -3576,7 +3674,7 @@ Responda só com JSON: {"texto": "2 a 4 frases", "pergunta": "pergunta curta ou 
 </script>
 
 <script>
-  window.APP_BUILT = "07/10/2026 21:24";
+  window.APP_BUILT = "09/10/2026 11:48";
   // Guarda o app no aparelho para funcionar sem internet.
   // Ao voltar para o app (ou a cada 30 min) procura versão nova; quando ela chega, recarrega fora das atividades.
   if ("serviceWorker" in navigator) {
